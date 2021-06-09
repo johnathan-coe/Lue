@@ -3,7 +3,7 @@ from sympy import preview
 from io import BytesIO
 from PIL import ImageTk, Image
 
-styles = {
+textStyles = {
     'h1': {
         'font': ('Segoe UI', 18)
     },
@@ -73,7 +73,7 @@ class Item(tk.Frame):
         if c in extensions:
             extensions[c](self, s)
         else:
-            self.label.configure(text=s, **styles[c])
+            self.label.configure(text=s, **textStyles[c])
 
         self.label.pack(anchor=tk.W)
 
