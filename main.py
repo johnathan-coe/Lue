@@ -46,7 +46,6 @@ class Item(tk.Frame):
         self.string = ""
 
         self.label = tk.Label(self)
-        self.label.bind('<Button-1>', self.edit)
 
         self.entry = tk.Entry(self)
         self.entry.bind('<Return>', self.advance)
