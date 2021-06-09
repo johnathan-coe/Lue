@@ -1,4 +1,7 @@
 import tkinter as tk
+from sympy import preview
+from io import BytesIO
+from PIL import ImageTk, Image
 
 styles = {
     'h1': {
@@ -12,11 +15,26 @@ styles = {
     }
 }
 
+def texMath(item, math):
+    out = BytesIO()
+    preview(math, output='png', viewer='BytesIO', outputbuffer=out)
+
+    img = Image.open(out)
+
+    item.label.image = ImageTk.PhotoImage(img)
+    item.label.configure(image=item.label.image)
+
+extensions = {
+    'tex': texMath
+}
+
 def classify(string):
     if string.startswith('##'):
         return "h2", string[2:].strip()
     elif string.startswith('#'):
         return "h1", string[1:].strip()
+    elif string.startswith('$'):
+        return "tex", '$$' + string[1:].strip() + '$$'
 
     return "body", string
 
@@ -52,7 +70,11 @@ class Item(tk.Frame):
 
         # Compute label styling and content
         c, s = classify(self.string)
-        self.label.configure(text=s, **styles[c])
+        if c in extensions:
+            extensions[c](self, s)
+        else:
+            self.label.configure(text=s, **styles[c])
+
         self.label.pack(anchor=tk.W)
 
     def edit(self, e=None):
