@@ -16,13 +16,15 @@ textStyles = {
 }
 
 def texMath(item, math):
-    out = BytesIO()
-    preview(math, output='png', viewer='BytesIO', outputbuffer=out)
+    try:
+        out = BytesIO()
+        preview(math, output='png', viewer='BytesIO', outputbuffer=out)
 
-    img = Image.open(out)
-
-    item.label.image = ImageTk.PhotoImage(img)
-    item.label.configure(image=item.label.image)
+        img = Image.open(out)
+        item.label.image = ImageTk.PhotoImage(img)
+        item.label.configure(image=item.label.image)
+    except RuntimeError:
+        item.label.config(text="TeX Error!")
 
 extensions = {
     'tex': texMath
