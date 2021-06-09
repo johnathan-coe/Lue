@@ -77,8 +77,6 @@ class Item(tk.Frame):
         self.label.pack(anchor=tk.W)
 
     def edit(self, e=None):
-        self.parent.setActive(self)
-
         self.label.pack_forget()
 
         self.entry.pack(anchor=tk.W, fill=tk.X)
@@ -93,11 +91,6 @@ class App(tk.Tk):
         self.items[-1].pack(fill=tk.X)
 
         self.mainloop()
-
-    def setActive(self, item):
-        for i in self.items:
-            if i is not item:
-                i.set()
 
     def advance(self, item):
         if item is self.items[-1]:
