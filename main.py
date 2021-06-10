@@ -27,6 +27,15 @@ styles = {
 }
 
 packStyles = {
+    'h1': {
+        'anchor': tk.W
+    },
+    'h2': {
+        'anchor': tk.W
+    },
+    'body': {
+        'anchor': tk.W
+    },
     'tex': {
         'padx': 5,
         'pady': 5
@@ -111,7 +120,7 @@ class Item(tk.Frame):
             if c in extensions:
                 extensions[c](self, s)
 
-        self.label.pack(anchor=tk.W, **packStyles.get(c, {}))
+        self.label.pack(**packStyles.get(c, {}))
 
     def edit(self, e=None):
         self.label.pack_forget()
