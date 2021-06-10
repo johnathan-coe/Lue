@@ -38,7 +38,8 @@ packStyles = {
     },
     'tex': {
         'padx': 5,
-        'pady': 5
+        'pady': 5,
+        'anchor': tk.W
     }
 }
 
