@@ -3,7 +3,7 @@ from sympy import preview
 from io import BytesIO
 from PIL import ImageTk, Image
 
-textStyles = {
+styles = {
     'h1': {
         'font': ('Segoe UI Semibold', 30),
         'bg': '#171717',
@@ -15,6 +15,11 @@ textStyles = {
         'fg': '#e6e6e6'
     },
     'body': {
+        'font': ('Segoe UI', 12),
+        'bg': '#171717',
+        'fg': '#e6e6e6'
+    },
+    'tex': {
         'font': ('Segoe UI', 12),
         'bg': '#171717',
         'fg': '#e6e6e6'
@@ -46,9 +51,10 @@ def texMath(item, math):
 
         img = Image.open(out)
         item.label.image = ImageTk.PhotoImage(img)
-        item.label.configure(image=item.label.image, bg="#171717")
+        item.label.configure(image=item.label.image)
     except RuntimeError:
-        item.label.config(text="TeX Error!")
+        item.label.image = None
+        item.label.configure(image="", text="TeX Error!")
 
 extensions = {
     'tex': texMath
@@ -79,7 +85,7 @@ class Item(tk.Frame):
         self.entry.bind('<Up>', self.retreat)
         self.entry.pack(anchor=tk.W, fill=tk.X)
         self.entry.focus_set()
-        self.entry.configure(**textStyles['body'])
+        self.entry.configure(**styles['body'])
 
     def advance(self, e):
         self.set()
@@ -97,13 +103,13 @@ class Item(tk.Frame):
 
         if self.string != self.entry.get():
             self.string = self.entry.get()
-    
+
+            self.entry.configure(**styles[c])
+            self.label.image = None
+            self.label.configure(image='', text=s, **styles[c])
+
             if c in extensions:
                 extensions[c](self, s)
-            else:
-                self.entry.configure(**textStyles[c])
-                self.label.image = None
-                self.label.configure(image='', text=s, **textStyles[c])
 
         self.label.pack(anchor=tk.W, **packStyles.get(c, {}))
 
