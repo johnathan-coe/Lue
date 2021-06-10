@@ -21,6 +21,13 @@ textStyles = {
     }
 }
 
+packStyles = {
+    'tex': {
+        'padx': 5,
+        'pady': 5
+    }
+}
+
 def texMath(item, math):
     #try:
     out = BytesIO()
@@ -40,7 +47,6 @@ def texMath(item, math):
     img = Image.open(out)
     item.label.image = ImageTk.PhotoImage(img)
     item.label.configure(image=item.label.image, bg="#171717")
-    item.label.pack_configure(padx=5, pady=5)
     #except RuntimeError:
         #item.label.config(text="TeX Error!")
 
@@ -86,19 +92,20 @@ class Item(tk.Frame):
     def set(self):
         self.entry.pack_forget()
 
-        self.string = self.entry.get()
-
         # Compute label styling and content
-        c, s = classify(self.string)
-        if c in extensions:
-            extensions[c](self, s)
-        else:
-            self.entry.configure(**textStyles[c])
-            self.label.image = None
-            self.label.configure(image='', text=s, **textStyles[c])
-            self.label.pack_configure(padx=0, pady=0)
+        c, s = classify(self.entry.get())
 
-        self.label.pack(anchor=tk.W)
+        if self.string != self.entry.get():
+            self.string = self.entry.get()
+    
+            if c in extensions:
+                extensions[c](self, s)
+            else:
+                self.entry.configure(**textStyles[c])
+                self.label.image = None
+                self.label.configure(image='', text=s, **textStyles[c])
+
+        self.label.pack(anchor=tk.W, **packStyles.get(c, {}))
 
     def edit(self, e=None):
         self.label.pack_forget()
