@@ -5,26 +5,44 @@ from PIL import ImageTk, Image
 
 textStyles = {
     'h1': {
-        'font': ('Segoe UI', 18)
+        'font': ('Segoe UI Semibold', 30),
+        'bg': '#171717',
+        'fg': '#e6e6e6'
     },
     'h2': {
-        'font': ('Segoe UI', 14)
+        'font': ('Segoe UI Semibold', 25),
+        'bg': '#171717',
+        'fg': '#e6e6e6'
     },
     'body': {
-        'font': ('Segoe UI', 11)
+        'font': ('Segoe UI', 12),
+        'bg': '#171717',
+        'fg': '#e6e6e6'
     }
 }
 
 def texMath(item, math):
-    try:
-        out = BytesIO()
-        preview(math, output='png', viewer='BytesIO', outputbuffer=out)
+    #try:
+    out = BytesIO()
+    
+    preamble = "\n".join([
+        "\\documentclass[17pt]{extarticle}",
+        "\\usepackage{xcolor}",
+        "\\pagenumbering{gobble}",
+        "\\begin{document}",
+        "\\definecolor{bg}{HTML}{171717}",
+        "\\definecolor{fg}{HTML}{e6e6e6}",
+        "\\color{fg}",
+        "\\pagecolor{bg}"
+    ])
+    preview(math, output='png', viewer='BytesIO', preamble=preamble, outputbuffer=out, euler=False)
 
-        img = Image.open(out)
-        item.label.image = ImageTk.PhotoImage(img)
-        item.label.configure(image=item.label.image)
-    except RuntimeError:
-        item.label.config(text="TeX Error!")
+    img = Image.open(out)
+    item.label.image = ImageTk.PhotoImage(img)
+    item.label.configure(image=item.label.image, bg="#171717")
+    item.label.pack_configure(padx=5, pady=5)
+    #except RuntimeError:
+        #item.label.config(text="TeX Error!")
 
 extensions = {
     'tex': texMath
@@ -43,7 +61,7 @@ def classify(string):
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, bg="#171717")
         self.parent = parent
         self.string = ""
 
@@ -55,6 +73,7 @@ class Item(tk.Frame):
         self.entry.bind('<Up>', self.retreat)
         self.entry.pack(anchor=tk.W, fill=tk.X)
         self.entry.focus_set()
+        self.entry.configure(**textStyles['body'])
 
     def advance(self, e):
         self.set()
@@ -74,7 +93,10 @@ class Item(tk.Frame):
         if c in extensions:
             extensions[c](self, s)
         else:
-            self.label.configure(text=s, **textStyles[c])
+            self.entry.configure(**textStyles[c])
+            self.label.image = None
+            self.label.configure(image='', text=s, **textStyles[c])
+            self.label.pack_configure(padx=0, pady=0)
 
         self.label.pack(anchor=tk.W)
 
@@ -88,6 +110,7 @@ class Item(tk.Frame):
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.configure(bg="#171717")
 
         self.items = [Item(self)]
         self.items[-1].pack(fill=tk.X)
