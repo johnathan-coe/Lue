@@ -29,26 +29,26 @@ packStyles = {
 }
 
 def texMath(item, math):
-    #try:
-    out = BytesIO()
-    
-    preamble = "\n".join([
-        "\\documentclass[17pt]{extarticle}",
-        "\\usepackage{xcolor}",
-        "\\pagenumbering{gobble}",
-        "\\begin{document}",
-        "\\definecolor{bg}{HTML}{171717}",
-        "\\definecolor{fg}{HTML}{e6e6e6}",
-        "\\color{fg}",
-        "\\pagecolor{bg}"
-    ])
-    preview(math, output='png', viewer='BytesIO', preamble=preamble, outputbuffer=out, euler=False)
+    try:
+        out = BytesIO()
+        
+        preamble = "\n".join([
+            "\\documentclass[17pt]{extarticle}",
+            "\\usepackage{xcolor}",
+            "\\pagenumbering{gobble}",
+            "\\begin{document}",
+            "\\definecolor{bg}{HTML}{171717}",
+            "\\definecolor{fg}{HTML}{e6e6e6}",
+            "\\color{fg}",
+            "\\pagecolor{bg}"
+        ])
+        preview(math, output='png', viewer='BytesIO', preamble=preamble, outputbuffer=out, euler=False)
 
-    img = Image.open(out)
-    item.label.image = ImageTk.PhotoImage(img)
-    item.label.configure(image=item.label.image, bg="#171717")
-    #except RuntimeError:
-        #item.label.config(text="TeX Error!")
+        img = Image.open(out)
+        item.label.image = ImageTk.PhotoImage(img)
+        item.label.configure(image=item.label.image, bg="#171717")
+    except RuntimeError:
+        item.label.config(text="TeX Error!")
 
 extensions = {
     'tex': texMath
