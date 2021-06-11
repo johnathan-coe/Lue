@@ -1,47 +1,25 @@
 import tkinter as tk
-from sympy import preview
-from io import BytesIO
-from PIL import ImageTk, Image
 from themes import loader
+from extensions import texMath
 
 styles, packStyles, appStyle = loader.load('themes/ms')
 
-def texMath(item, math):
-    try:
-        out = BytesIO()
-        
-        preamble = "\n".join([
-            "\\documentclass[17pt]{extarticle}",
-            "\\usepackage{xcolor}",
-            "\\pagenumbering{gobble}",
-            "\\begin{document}",
-            "\\definecolor{bg}{HTML}{171717}",
-            "\\definecolor{fg}{HTML}{e6e6e6}",
-            "\\color{fg}",
-            "\\pagecolor{bg}"
-        ])
-        preview(math, output='png', viewer='BytesIO', preamble=preamble, outputbuffer=out, euler=False)
+extensions = [texMath]
 
-        img = Image.open(out)
-        item.label.image = ImageTk.PhotoImage(img)
-        item.label.configure(image=item.label.image)
-    except RuntimeError:
-        item.label.image = None
-        item.label.configure(image="", text="TeX Error!")
-
-extensions = {
-    'tex': texMath
-}
+def renderText(item, style, string):
+    item.label.configure(text=string, **style)
 
 def classify(string):
     if string.startswith('##'):
-        return "h2", string[2:].strip()
+        return "h2", string[2:].strip(), renderText
     elif string.startswith('#'):
-        return "h1", string[1:].strip()
-    elif string.startswith('$'):
-        return "tex", '$$' + string[1:].strip() + '$$'
+        return "h1", string[1:].strip(), renderText
 
-    return "body", string
+    for ext in extensions:
+        if string.startswith(ext.PREFIX):
+            return ext.lex(string)        
+
+    return "body", string, renderText
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
@@ -80,7 +58,7 @@ class Item(tk.Frame):
         self.entry.pack_forget()
 
         # Compute label styling and content
-        c, s = classify(self.entry.get())
+        c, s, r = classify(self.entry.get())
 
         # If we've updated the entry, update the label
         if self.string != self.entry.get():
@@ -90,11 +68,12 @@ class Item(tk.Frame):
             if 'fg' in styles[c]:
                 self.entry.configure(insertbackground=styles[c]['fg'])
 
+            # Wipe any existing image
             self.label.image = None
-            self.label.configure(image='', text=s, **styles[c])
+            self.label.configure(image='')
 
-            if c in extensions:
-                extensions[c](self, s)
+            # Hand off to rendering function
+            r(self, styles[c], s)
 
         self.label.pack(**packStyles.get(c, {}))
 
