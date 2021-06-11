@@ -23,15 +23,15 @@ def classify(string):
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, app, parent):
         super().__init__(parent)
 
         # If there is a background set on the window,
         #   apply it to the label
-        if 'bg' in appStyle['Window']:
-            self.config(bg=appStyle['Window']['bg'])
+        if 'bg' in appStyle['Frame']:
+            self.config(bg=appStyle['Frame']['bg'])
 
-        self.parent = parent
+        self.app = app
         self.string = ""
 
         self.label = tk.Label(self)
@@ -48,11 +48,11 @@ class Item(tk.Frame):
       
     def advance(self, e):
         self.set()
-        self.parent.move(self, +1)
+        self.app.move(self, +1)
 
     def retreat(self, e):
         self.set()
-        self.parent.move(self, -1)
+        self.app.move(self, -1)
 
     def style(self):
         # Get info from string
@@ -91,7 +91,10 @@ class App(tk.Tk):
         super().__init__()
         self.configure(**appStyle['Window'])
 
-        self.items = [Item(self)]
+        self.itemFrame = tk.Frame(self, **appStyle['Frame'])
+        self.itemFrame.pack(fill=tk.BOTH, expand=True)
+
+        self.items = [Item(self, self.itemFrame)]
         self.items[-1].pack(fill=tk.X)
 
         self.mainloop()
@@ -107,7 +110,7 @@ class App(tk.Tk):
         elif to < len(self.items):
             self.items[to].edit()
         else:
-            newItem = Item(self)
+            newItem = Item(self, self.itemFrame)
             self.items.append(newItem)
             newItem.pack(fill=tk.X)
 
