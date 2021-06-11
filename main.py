@@ -48,11 +48,11 @@ class Item(tk.Frame):
       
     def advance(self, e):
         self.set()
-        self.parent.advance(self)
+        self.parent.move(self, +1)
 
     def retreat(self, e):
         self.set()
-        self.parent.retreat(self)
+        self.parent.move(self, -1)
 
     def style(self):
         # Get info from string
@@ -96,28 +96,24 @@ class App(tk.Tk):
 
         self.mainloop()
 
-    def advance(self, item):
-        if item is self.items[-1]:
-            self.items.append(Item(self))
-            self.items[-1].pack(fill=tk.X)
-        else:
-            nextIndex = self.items.index(item) + 1
-            self.items[nextIndex].edit()
+    def remove(self, item):
+        item.pack_forget()
+        self.items.remove(item)
 
-        if not item.string:
-            item.pack_forget()
-            self.items.remove(item)
-
-    def retreat(self, item):
-        if item is not self.items[0]:
-            prevIndex = self.items.index(item) - 1
-            self.items[prevIndex].edit()
-        else:
+    def move(self, item, direction):
+        to = self.items.index(item) + direction
+        if to < 0:
             item.edit()
+        elif to < len(self.items):
+            self.items[to].edit()
+        else:
+            newItem = Item(self)
+            self.items.append(newItem)
+            newItem.pack(fill=tk.X)
 
-        if not item.string:
-            item.pack_forget()
-            self.items.remove(item)
+            if not item.string:
+                self.remove(item)
+            
 
 if __name__ == "__main__":
     App()
