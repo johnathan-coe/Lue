@@ -35,17 +35,17 @@ class Item(tk.Frame):
         self.string = ""
 
         self.label = tk.Label(self)
-
         self.entry = tk.Entry(self)
+
+        # Keyboard bindings
         self.entry.bind('<Return>', self.advance)
         self.entry.bind('<Down>', self.advance)
         self.entry.bind('<Up>', self.retreat)
-        self.entry.pack(anchor=tk.W, fill=tk.X)
-        self.entry.focus_set()
-        self.entry.configure(**styles['body'])
-        if 'fg' in styles['body']:
-            self.entry.configure(insertbackground=styles['body']['fg'])
 
+        # Style components and switch to editing mode
+        self.style()
+        self.edit()
+      
     def advance(self, e):
         self.set()
         self.parent.advance(self)
@@ -54,32 +54,34 @@ class Item(tk.Frame):
         self.set()
         self.parent.retreat(self)
 
+    def style(self):
+        # Get info from string
+        c, s, r = classify(self.string)
+
+        self.entry.configure(**styles[c])
+        if 'fg' in styles[c]:
+            self.entry.configure(insertbackground=styles[c]['fg'])
+
+        # Wipe any existing image
+        self.label.image = None
+        self.label.configure(image='')
+
+        # Hand off to rendering function
+        r(self, styles[c], s)
+
     def set(self):
-        self.entry.pack_forget()
-
-        # Compute label styling and content
-        c, s, r = classify(self.entry.get())
-
         # If we've updated the entry, update the label
         if self.string != self.entry.get():
             self.string = self.entry.get()
-
-            self.entry.configure(**styles[c])
-            if 'fg' in styles[c]:
-                self.entry.configure(insertbackground=styles[c]['fg'])
-
-            # Wipe any existing image
-            self.label.image = None
-            self.label.configure(image='')
-
-            # Hand off to rendering function
-            r(self, styles[c], s)
-
+            self.style()
+            
+        c, _, _ = classify(self.string)
+        # Remove entry box and place label on the screen 
+        self.entry.pack_forget()
         self.label.pack(**packStyles.get(c, {}))
 
     def edit(self, e=None):
         self.label.pack_forget()
-
         self.entry.pack(anchor=tk.W, fill=tk.X)
         self.entry.focus_set()
 
