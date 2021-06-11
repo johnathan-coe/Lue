@@ -82,6 +82,7 @@ class Item(tk.Frame):
         # Compute label styling and content
         c, s = classify(self.entry.get())
 
+        # If we've updated the entry, update the label
         if self.string != self.entry.get():
             self.string = self.entry.get()
 
