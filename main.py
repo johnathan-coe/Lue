@@ -2,46 +2,9 @@ import tkinter as tk
 from sympy import preview
 from io import BytesIO
 from PIL import ImageTk, Image
+from themes import loader
 
-styles = {
-    'h1': {
-        'font': ('Segoe UI Semibold', 30),
-        'bg': '#171717',
-        'fg': '#e6e6e6'
-    },
-    'h2': {
-        'font': ('Segoe UI Semibold', 25),
-        'bg': '#171717',
-        'fg': '#e6e6e6'
-    },
-    'body': {
-        'font': ('Segoe UI', 12),
-        'bg': '#171717',
-        'fg': '#e6e6e6'
-    },
-    'tex': {
-        'font': ('Segoe UI', 12),
-        'bg': '#171717',
-        'fg': '#e6e6e6'
-    }
-}
-
-packStyles = {
-    'h1': {
-        'anchor': tk.W
-    },
-    'h2': {
-        'anchor': tk.W
-    },
-    'body': {
-        'anchor': tk.W
-    },
-    'tex': {
-        'padx': 5,
-        'pady': 5,
-        'anchor': tk.W
-    }
-}
+styles, packStyles, appStyle = loader.load('themes/ms')
 
 def texMath(item, math):
     try:
