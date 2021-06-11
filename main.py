@@ -96,6 +96,8 @@ class Item(tk.Frame):
         self.entry.pack(anchor=tk.W, fill=tk.X)
         self.entry.focus_set()
         self.entry.configure(**styles['body'])
+        if 'fg' in styles['body']:
+            self.entry.configure(insertbackground=styles['body']['fg'])
 
     def advance(self, e):
         self.set()
@@ -115,6 +117,9 @@ class Item(tk.Frame):
             self.string = self.entry.get()
 
             self.entry.configure(**styles[c])
+            if 'fg' in styles[c]:
+                self.entry.configure(insertbackground=styles[c]['fg'])
+
             self.label.image = None
             self.label.configure(image='', text=s, **styles[c])
 
