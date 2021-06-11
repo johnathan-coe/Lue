@@ -23,7 +23,7 @@ def classify(string):
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
-    def __init__(self, app, parent):
+    def __init__(self, app, parent, string=""):
         super().__init__(parent)
 
         # If there is a background set on the window,
@@ -32,7 +32,7 @@ class Item(tk.Frame):
             self.config(bg=appStyle['Frame']['bg'])
 
         self.app = app
-        self.string = ""
+        self.string = string
 
         self.label = tk.Label(self)
         self.entry = tk.Entry(self)
