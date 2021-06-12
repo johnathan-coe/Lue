@@ -12,11 +12,9 @@ class Item(tk.Frame):
         self.app = app
         self.string = string
 
-        # If there is a background set on the window,
-        #   apply it to the label
-        if 'bg' in self.app.s.appStyle['Frame']:
-            self.config(bg=self.app.s.appStyle['Frame']['bg'])
-
+        # Repurpose frame bg for item bg
+        themes.repurpose(self, app.s.appStyle['Frame'], 'bg')
+       
         self.label = tk.Label(self)
         self.entry = tk.Entry(self)
 
@@ -42,8 +40,8 @@ class Item(tk.Frame):
         c, s, r = extensions.classify(self.string)
 
         self.entry.configure(**self.app.s.styles[c])
-        if 'fg' in self.app.s.styles[c]:
-            self.entry.configure(insertbackground=self.app.s.styles[c]['fg'])
+        # Repurpose fg for insertbackground
+        themes.repurpose(self.entry, self.app.s.styles[c], 'fg', 'insertbackground')
 
         # Wipe any existing image
         self.label.image = None
