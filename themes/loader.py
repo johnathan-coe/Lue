@@ -23,10 +23,3 @@ def parseConfig(path):
     # Split csv values
     return {section: {key: csvParse(applied[section][key]) for key in applied[section]} for section in applied}
 
-# This loads in theming information from a given folder
-def load(theme):
-    eApp = os.path.join(theme, 'elements/appearance.ini')
-    ePos = os.path.join(theme, 'elements/position.ini')
-    app = os.path.join(theme, 'application.ini')
-    
-    return parseConfig(eApp), parseConfig(ePos), parseConfig(app)

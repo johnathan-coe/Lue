@@ -1,33 +1,20 @@
 import tkinter as tk
-from themes import loader
 from extensions.PlainText import PlainText
-from extensions import TexMath
-
-styles, packStyles, appStyle = loader.load('themes/ms')
-
-extensions = [TexMath]
-
-def classify(string):
-    if string.startswith('##'):
-        return "h2", string[2:].strip(), PlainText
-    elif string.startswith('#'):
-        return "h1", string[1:].strip(), PlainText
-
-    for ext in extensions:
-        if string.startswith(ext.PREFIX):
-            return ext.lex(string)        
-
-    return "body", string, PlainText
+import config
+import themes
+import extensions
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
     def __init__(self, app, parent, string=""):
         super().__init__(parent)
 
+        self.s = app.s
+
         # If there is a background set on the window,
         #   apply it to the label
-        if 'bg' in appStyle['Frame']:
-            self.config(bg=appStyle['Frame']['bg'])
+        if 'bg' in self.s.appStyle['Frame']:
+            self.config(bg=self.s.appStyle['Frame']['bg'])
 
         self.app = app
         self.string = string
@@ -54,18 +41,18 @@ class Item(tk.Frame):
 
     def style(self):
         # Get info from string
-        c, s, r = classify(self.string)
+        c, s, r = extensions.classify(self.string)
 
-        self.entry.configure(**styles[c])
-        if 'fg' in styles[c]:
-            self.entry.configure(insertbackground=styles[c]['fg'])
+        self.entry.configure(**self.s.styles[c])
+        if 'fg' in self.s.styles[c]:
+            self.entry.configure(insertbackground=self.s.styles[c]['fg'])
 
         # Wipe any existing image
         self.label.image = None
         self.label.configure(image='')
 
         # Hand off to rendering function
-        r.render(self, styles[c], s)
+        r.render(self, self.s.styles[c], s)
 
     def set(self):
         # If we've updated the entry, update the label
@@ -73,10 +60,10 @@ class Item(tk.Frame):
             self.string = self.entry.get()
             self.style()
             
-        c, _, _ = classify(self.string)
+        c, _, _ = extensions.classify(self.string)
         # Remove entry box and place label on the screen 
         self.entry.pack_forget()
-        self.label.pack(**packStyles.get(c, {}))
+        self.label.pack(**self.s.packStyles.get(c, {}))
 
     def edit(self, e=None):
         self.label.pack_forget()
@@ -87,9 +74,11 @@ class Item(tk.Frame):
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.configure(**appStyle['Window'])
+        self.s = themes.Theme(config.THEME)
 
-        self.itemFrame = tk.Frame(self, **appStyle['Frame'])
+        self.configure(**self.s.appStyle['Window'])
+
+        self.itemFrame = tk.Frame(self, **self.s.appStyle['Frame'])
         self.itemFrame.pack(fill=tk.BOTH, expand=True)
 
         self.items = [Item(self, self.itemFrame)]
@@ -107,10 +96,10 @@ class App(tk.Tk):
         out = "<html>\n<body>\n"
         for i in self.items:
             # Get info from string
-            c, s, r = classify(i.string)
+            c, s, r = config.classify(i.string)
 
             if s:
-                image, output = r.export(s, styles[c])
+                image, output = r.export(s, self.s.styles[c])
 
                 if not image:
                     out += f"<{m[c]}>"
