@@ -18,22 +18,16 @@ class Item(tk.Frame):
         self.label = tk.Label(self)
         self.entry = tk.Entry(self)
 
+        move = lambda d: lambda e: self.app.move(self, d)
+
         # Keyboard bindings
-        self.entry.bind('<Return>', self.advance)
-        self.entry.bind('<Down>', self.advance)
-        self.entry.bind('<Up>', self.retreat)
+        self.entry.bind('<Return>', move(+1))
+        self.entry.bind('<Down>', move(+1))
+        self.entry.bind('<Up>', move(-1))
 
         # Style components and switch to editing mode
         self.style()
         self.edit()
-      
-    def advance(self, e):
-        self.set()
-        self.app.move(self, +1)
-
-    def retreat(self, e):
-        self.set()
-        self.app.move(self, -1)
 
     def style(self):
         # Get info from string
@@ -87,10 +81,13 @@ class App(tk.Tk):
     def move(self, item, direction):
         to = self.items.index(item) + direction
         if to < 0:
-            item.edit()
+            pass
         elif to < len(self.items):
+            item.set()
             self.items[to].edit()
         else:
+            item.set()
+
             newItem = Item(self, self.itemFrame)
             self.items.append(newItem)
             newItem.pack(fill=tk.X)
@@ -99,6 +96,5 @@ class App(tk.Tk):
                 item.pack_forget()
                 self.items.remove(item)
             
-
 if __name__ == "__main__":
     App()
