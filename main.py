@@ -9,16 +9,13 @@ from exporters import HTML
 class Item(tk.Frame):
     def __init__(self, app, parent, string=""):
         super().__init__(parent)
-
-        self.s = app.s
+        self.app = app
+        self.string = string
 
         # If there is a background set on the window,
         #   apply it to the label
-        if 'bg' in self.s.appStyle['Frame']:
-            self.config(bg=self.s.appStyle['Frame']['bg'])
-
-        self.app = app
-        self.string = string
+        if 'bg' in self.app.s.appStyle['Frame']:
+            self.config(bg=self.app.s.appStyle['Frame']['bg'])
 
         self.label = tk.Label(self)
         self.entry = tk.Entry(self)
@@ -44,16 +41,16 @@ class Item(tk.Frame):
         # Get info from string
         c, s, r = extensions.classify(self.string)
 
-        self.entry.configure(**self.s.styles[c])
-        if 'fg' in self.s.styles[c]:
-            self.entry.configure(insertbackground=self.s.styles[c]['fg'])
+        self.entry.configure(**self.app.s.styles[c])
+        if 'fg' in self.app.s.styles[c]:
+            self.entry.configure(insertbackground=self.app.s.styles[c]['fg'])
 
         # Wipe any existing image
         self.label.image = None
         self.label.configure(image='')
 
         # Hand off to rendering function
-        r.render(self, self.s.styles[c], s)
+        r.render(self, self.app.s.styles[c], s)
 
     def set(self):
         # If we've updated the entry, update the label
@@ -64,7 +61,7 @@ class Item(tk.Frame):
         c, _, _ = extensions.classify(self.string)
         # Remove entry box and place label on the screen 
         self.entry.pack_forget()
-        self.label.pack(**self.s.packStyles.get(c, {}))
+        self.label.pack(**self.app.s.packStyles.get(c, {}))
 
     def edit(self, e=None):
         self.label.pack_forget()
