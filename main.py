@@ -86,10 +86,6 @@ class App(tk.Tk):
 
         self.mainloop() 
 
-    def remove(self, item):
-        item.pack_forget()
-        self.items.remove(item)
-
     def move(self, item, direction):
         to = self.items.index(item) + direction
         if to < 0:
@@ -102,7 +98,8 @@ class App(tk.Tk):
             newItem.pack(fill=tk.X)
 
             if not item.string:
-                self.remove(item)
+                item.pack_forget()
+                self.items.remove(item)
             
 
 if __name__ == "__main__":
