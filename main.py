@@ -1,5 +1,4 @@
 import tkinter as tk
-from extensions.PlainText import PlainText
 import config
 import themes
 import extensions
