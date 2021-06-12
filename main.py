@@ -8,12 +8,11 @@ from exporters import HTML
 class Item(tk.Frame):
     def __init__(self, app, parent, string=""):
         super().__init__(parent)
+        themes.repurpose(self, app.s.appStyle['Frame'], 'bg')
+        
         self.app = app
         self.string = string
 
-        # Repurpose frame bg for item bg
-        themes.repurpose(self, app.s.appStyle['Frame'], 'bg')
-       
         self.label = tk.Label(self)
         self.entry = tk.Entry(self)
 
@@ -33,7 +32,6 @@ class Item(tk.Frame):
         c, s, r = extensions.classify(self.string)
 
         self.entry.configure(**self.app.s.styles[c])
-        # Repurpose fg for insertbackground
         themes.repurpose(self.entry, self.app.s.styles[c], 'fg', 'insertbackground')
 
         # Wipe any existing image
