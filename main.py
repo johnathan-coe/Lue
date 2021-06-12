@@ -66,17 +66,21 @@ class App(tk.Tk):
         super().__init__()
         self.s = themes.Theme(config.THEME)
 
-        self.configure(**self.s.appStyle['Window'])
-
-        self.itemFrame = tk.Frame(self, **self.s.appStyle['Frame'])
+        self.itemFrame = tk.Frame(self)
         self.itemFrame.pack(fill=tk.BOTH, expand=True)
 
+        self.style()
+
         self.items = [Item(self, self.itemFrame)]
-        self.items[-1].pack(fill=tk.X)
+        self.items[0].pack(fill=tk.X)
 
         tk.Button(self, text='Convert to HTML', command=lambda: HTML.export(self)).pack()
 
-        self.mainloop() 
+        self.mainloop()
+
+    def style(self):
+        self.configure(**self.s.appStyle['Window'])
+        self.itemFrame.configure(**self.s.appStyle['Frame'])
 
     def move(self, item, direction):
         to = self.items.index(item) + direction
