@@ -4,7 +4,6 @@ import themes
 import extensions
 from exporters import HTML
 
-
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
     def __init__(self, app, parent, string=""):
@@ -13,7 +12,7 @@ class Item(tk.Frame):
         self.app = app
         self.string = string
 
-        self.label = tk.Label(self)
+        self.label = tk.Label(self, wraplength=500)
         self.entry = tk.Entry(self)
 
         move = lambda d: lambda e: self.app.move(self, d)
@@ -22,7 +21,7 @@ class Item(tk.Frame):
         self.entry.bind('<Return>', move(+1))
         self.entry.bind('<Down>', move(+1))
         self.entry.bind('<Up>', move(-1))
-        
+
         # Style components and switch to editing mode
         self.edit()
 
