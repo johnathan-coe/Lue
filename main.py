@@ -22,9 +22,8 @@ class Item(tk.Frame):
         self.entry.bind('<Return>', move(+1))
         self.entry.bind('<Down>', move(+1))
         self.entry.bind('<Up>', move(-1))
-
+        
         # Style components and switch to editing mode
-        # self.style()
         self.edit()
 
     def style(self):
