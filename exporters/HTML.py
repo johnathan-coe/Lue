@@ -1,5 +1,7 @@
 import extensions
 
+NAME = 'HTML'
+
 def export(app):
     m = {'h1': 'h1', 'h2': 'h2', 'body': 'p', 'tex': 'math'}
 

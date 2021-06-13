@@ -4,6 +4,7 @@ import themes
 import extensions
 from exporters import HTML
 
+
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
     def __init__(self, app, parent, string=""):
@@ -70,8 +71,19 @@ class App(tk.Tk):
 
         self.style(config.THEME)
 
-        tk.Button(self, text='Convert to HTML', command=lambda: HTML.export(self)).pack()
-        tk.Button(self, text='Restyle', command=lambda: self.style('themes/latex')).pack()
+        # Define a menu
+        menu = tk.Menu(self)
+        self.config(menu=menu)
+        
+        themeMenu = tk.Menu(menu)
+        for theme in config.THEMES:
+            themeMenu.add_command(label=theme.split('/')[-1], command=lambda t=theme: self.style(t))
+        menu.add_cascade(label="Theme", menu=themeMenu)
+
+        exportMenu = tk.Menu(menu)
+        for exporter in config.EXPORTERS:
+            exportMenu.add_command(label=exporter.NAME, command=lambda x=exporter: x.export(self))
+        menu.add_cascade(label="Export", menu=exportMenu)
 
         self.mainloop()
 
@@ -95,6 +107,7 @@ class App(tk.Tk):
             item.set()
 
             newItem = Item(self, self.itemFrame)
+            newItem.style()
             self.items.append(newItem)
             newItem.pack(fill=tk.X)
 
