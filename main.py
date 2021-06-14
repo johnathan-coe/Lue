@@ -90,6 +90,11 @@ class App(tk.Tk):
         menu = tk.Menu(self)
         self.config(menu=menu)
         
+        fileMenu = tk.Menu(menu)
+        fileMenu.add_command(label="Open")
+        fileMenu.add_command(label="Save")
+        menu.add_cascade(label="File", menu=fileMenu)
+
         themeMenu = tk.Menu(menu)
         for theme in config.THEMES:
             themeMenu.add_command(label=theme.split('/')[-1], command=lambda t=theme: self.style(t))
