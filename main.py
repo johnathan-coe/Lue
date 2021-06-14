@@ -69,6 +69,10 @@ class App(tk.Tk):
 
         self.style(config.THEME)
 
+        self.attachMenuBar()
+        self.mainloop()
+
+    def attachMenuBar(self):
         # Define a menu
         menu = tk.Menu(self)
         self.config(menu=menu)
@@ -82,8 +86,6 @@ class App(tk.Tk):
         for exporter in config.EXPORTERS:
             exportMenu.add_command(label=exporter.NAME, command=lambda x=exporter: x.export(self))
         menu.add_cascade(label="Export", menu=exportMenu)
-
-        self.mainloop()
 
     def style(self, theme):
         self.s = themes.Theme(theme)
