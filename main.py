@@ -6,14 +6,15 @@ from exporters import HTML
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
-    def __init__(self, app, parent, string=""):
+    def __init__(self, app, parent):
         super().__init__(parent)
         
         self.app = app
-        self.string = string
-
+        self.string = ''
+    
         self.label = tk.Label(self, wraplength=500)
-        self.entry = tk.Entry(self)
+        self.entryVal = tk.StringVar()
+        self.entry = tk.Entry(self, textvariable=self.entryVal)
 
         move = lambda d: lambda e: self.app.move(self, d)
 
@@ -43,8 +44,8 @@ class Item(tk.Frame):
 
     def set(self):
         # If we've updated the entry, update the label
-        if self.string != self.entry.get():
-            self.string = self.entry.get()
+        if self.string != self.entryVal.get():
+            self.string = self.entryVal.get()
             self.style()
             
         c, _, _ = extensions.classify(self.string)
@@ -62,15 +63,27 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.itemFrame = tk.Frame(self)
-        self.itemFrame.pack(fill=tk.BOTH, expand=True)
-
-        self.items = [Item(self, self.itemFrame)]
-        self.items[0].pack(fill=tk.X)
-
+        self.itemFrame.pack(fill=tk.BOTH, expand=True)        
+        self.items = []
         self.style(config.THEME)
+
+        self.loadFromFile('welcome.pnm')
 
         self.attachMenuBar()
         self.mainloop()
+
+    def loadFromFile(self, fileName):
+        with open(fileName, 'r') as f:
+            for line in f.readlines():
+                i = Item(self, self.itemFrame)
+                i.entryVal.set(line.rstrip())
+                i.set()
+                self.items.append(i)
+
+        end = Item(self, self.itemFrame)
+        end.style()
+        self.items.append(end)
+        [i.pack(fill=tk.X) for i in self.items]
 
     def attachMenuBar(self):
         # Define a menu
