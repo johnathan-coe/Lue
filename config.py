@@ -4,5 +4,5 @@ from exporters import HTML
 EXTENSIONS = [TexMath]
 EXPORTERS = [HTML]
 
-THEMES = ['themes/ms', 'themes/latex']
+THEMES = ['themes/ms', 'themes/latex', 'themes/plain']
 THEME = 'themes/ms'
