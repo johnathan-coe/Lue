@@ -7,7 +7,7 @@ PREFIX = "$"
 # Called when a line starts with PREFIX
 # Return the styling class, Body string and rendering routine
 def lex(string):
-    return "tex", string[1:].strip(), TexMath
+    return "tex", TexMath
 
 def getImage(math, styles):
     out = BytesIO()
@@ -26,8 +26,11 @@ def getImage(math, styles):
 
 class TexMath:
     @staticmethod
-    def render(item, styles, math):
+    def render(item, styles):
         try:
+            # Remove the $
+            math = item.string[1:].strip()
+            
             img = getImage(math, styles)
             item.label.image = ImageTk.PhotoImage(img)
             # Add image and specified styling from stylesheet

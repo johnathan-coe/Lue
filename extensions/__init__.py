@@ -3,12 +3,12 @@ from .PlainText import PlainText
 
 def classify(string):
     if string.startswith('##'):
-        return "h2", string[2:].strip(), PlainText
+        return "h2", PlainText
     elif string.startswith('#'):
-        return "h1", string[1:].strip(), PlainText
+        return "h1", PlainText
 
     for ext in config.EXTENSIONS:
         if string.startswith(ext.PREFIX):
             return ext.lex(string)        
 
-    return "body", string, PlainText
+    return "body", PlainText

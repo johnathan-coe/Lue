@@ -30,7 +30,7 @@ class Item(tk.Frame):
         themes.repurpose(self, self.app.s.appStyle['Frame'], 'bg')
 
         # Get info from string
-        c, s, r = extensions.classify(self.string)
+        c, r = extensions.classify(self.string)
 
         self.entry.configure(**self.app.s.styles[c])
         themes.repurpose(self.entry, self.app.s.styles[c], 'fg', 'insertbackground')
@@ -40,7 +40,7 @@ class Item(tk.Frame):
         self.label.configure(image='')
 
         # Hand off to rendering function
-        r.render(self, self.app.s.styles[c], s)
+        r.render(self, self.app.s.styles[c])
 
     def set(self):
         # If we've updated the entry, update the label
@@ -48,7 +48,7 @@ class Item(tk.Frame):
             self.string = self.entryVal.get()
             self.style()
             
-        c, _, _ = extensions.classify(self.string)
+        c, _, = extensions.classify(self.string)
         # Remove entry box and place label on the screen 
         self.entry.pack_forget()
         self.label.pack(**self.app.s.packStyles.get(c, {}))
