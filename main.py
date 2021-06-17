@@ -3,6 +3,7 @@ import config
 import themes
 import extensions
 from exporters import HTML
+from VertFrame import VerticalScrolledFrame
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
@@ -59,7 +60,7 @@ class Item(tk.Frame):
         self.entry.focus_set()
 
 
-class ItemFrame(tk.Frame):
+class ItemFrame(VerticalScrolledFrame):
     def __init__(self, parent):
         super().__init__(parent)
         self.items = []
@@ -81,7 +82,8 @@ class ItemFrame(tk.Frame):
         self.s = themes.Theme(theme)
 
         self.configure(**self.s.appStyle['Frame'])
-        
+        themes.repurpose(self.canvas, self.s.appStyle['Frame'], 'bg')
+
         for i in self.items:
             i.style()
 
@@ -107,11 +109,12 @@ class ItemFrame(tk.Frame):
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+
         self.itemFrame = ItemFrame(self)
-        self.itemFrame.pack(fill=tk.BOTH, expand=True)        
         self.itemFrame.style(config.THEME)
         self.itemFrame.loadFromFile('welcome.pnm')
-
+        self.itemFrame.pack(fill=tk.BOTH, expand=True)
+        
         self.attachMenuBar()
         self.mainloop()
 
