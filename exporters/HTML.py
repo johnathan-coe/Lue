@@ -10,21 +10,20 @@ def export(app):
     out = "<html>\n<body>\n"
     for i in app.items:
         # Get info from string
-        c, s, r = extensions.classify(i.string)
+        c, r = extensions.classify(i.string)
 
-        if s:
-            image, output = r.export(s, app.s.styles[c])
+        image, output = r.export(i, app.s.styles[c])
 
-            if not image:
-                out += f"<{m[c]}>"
-                out += output
-                out += f"</{m[c]}>"
-                out += "\n"
-            else:
-                path = f"img/{imageCount}.png"
-                output.save('rendered/' + path)
-                out += f'<img src="{path}">\n'
-                imageCount += 1
+        if not image:
+            out += f"<{m[c]}>"
+            out += output
+            out += f"</{m[c]}>"
+            out += "\n"
+        else:
+            path = f"img/{imageCount}.png"
+            output.save('rendered/' + path)
+            out += f'<img src="{path}">\n'
+            imageCount += 1
 
 
     out += "</body>\n</html>"

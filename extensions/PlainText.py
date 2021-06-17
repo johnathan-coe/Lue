@@ -8,5 +8,5 @@ class PlainText:
         item.label.configure(text=text, **style)
 
     @staticmethod
-    def export(string, style):
-        return False, string
+    def export(item, style):
+        return False, item.string
