@@ -21,6 +21,8 @@ class VerticalScrolledFrame:
         self.vsb.pack(fill=tk.Y, side=tk.RIGHT)
         self.canvas = tk.Canvas(self.outer, highlightthickness=0, width=width, height=height, bg=bg)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
+
         self.canvas['yscrollcommand'] = self.vsb.set
         # mouse scroll does not seem to work with just "bind"; You have
         # to use "bind_all". Therefore to use multiple windows you have
@@ -31,7 +33,7 @@ class VerticalScrolledFrame:
 
         self.inner = tk.Frame(self.canvas, bg=bg)
         # pack the inner Frame into the Canvas with the topleft corner 4 pixels offset
-        self.canvas.create_window(0, 0, window=self.inner, anchor='nw')
+        self.innerID = self.canvas.create_window(0, 0, window=self.inner, anchor='nw')
         self.inner.bind("<Configure>", self._on_frame_configure)
 
         self.outer_attr = set(dir(tk.Widget))
@@ -48,6 +50,10 @@ class VerticalScrolledFrame:
         x1, y1, x2, y2 = self.canvas.bbox("all")
         height = self.canvas.winfo_height()
         self.canvas.config(scrollregion = (0,0, x2, max(y2, height)))
+        
+    def _on_canvas_configure(self, event=None):
+        # Resize the frame
+        self.canvas.itemconfig(self.innerID, width=event.width)
 
     def _bind_mouse(self, event=None):
         self.canvas.bind_all("<4>", self._on_mousewheel)
