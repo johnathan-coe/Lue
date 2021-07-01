@@ -27,6 +27,9 @@ class Item(tk.Frame):
         # Style components and switch to editing mode
         self.edit()
 
+    def packStyles(self, c):
+        self.label.pack_configure(**self.frame.s.packStyles.get(c, {}))
+
     def style(self):
         themes.repurpose(self, self.frame.s.appStyle['Frame'], 'bg')
 
@@ -40,6 +43,9 @@ class Item(tk.Frame):
         self.label.image = None
         self.label.configure(image='')
 
+        # Apply positioning info
+        self.packStyles(c)
+
         # Hand off to rendering function
         r.render(self, self.frame.s.styles[c])
 
@@ -52,15 +58,20 @@ class Item(tk.Frame):
         c, _, = extensions.classify(self.string)
         # Remove entry box and place label on the screen 
         self.entry.pack_forget()
-        self.label.pack(**self.frame.s.packStyles.get(c, {}))
+
+        self.label.pack()
+        self.packStyles(c)
 
     def edit(self, e=None):
         self.label.pack_forget()
-        self.entry.pack(anchor=tk.W, fill=tk.X)
+        self.entry.pack(fill=tk.X)
+        
+        c, _, = extensions.classify(self.string)
+        self.entry.pack_configure(**self.frame.s.packStyles.get(c, {}))
         self.entry.focus_set()
 
 
-class ItemFrame(VerticalScrolledFrame):
+class Viewer(VerticalScrolledFrame):
     def __init__(self, parent):
         super().__init__(parent)
         self.items = []
@@ -110,7 +121,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.itemFrame = ItemFrame(self)
+        self.itemFrame = Viewer(self)
         self.itemFrame.style(config.THEME)
         self.itemFrame.loadFromFile('welcome.pnm')
         self.itemFrame.pack(fill=tk.BOTH, expand=True)
