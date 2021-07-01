@@ -16,6 +16,8 @@ class Viewer(VerticalScrolledFrame):
 
         with open(fileName, 'r') as f:
             for line in f.readlines():
+                if not line.rstrip(): continue
+
                 i = Item(self)
                 i.entryVal.set(line.rstrip())
                 i.set()
