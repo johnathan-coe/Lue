@@ -1,7 +1,7 @@
-from extensions import TexMath
+from extensions import TexMath, Bullet
 from exporters import HTML
 
-EXTENSIONS = [TexMath]
+EXTENSIONS = [TexMath, Bullet]
 EXPORTERS = [HTML]
 
 THEMES = ['themes/ms', 'themes/latex', 'themes/lukesmith']
