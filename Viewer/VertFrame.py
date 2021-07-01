@@ -74,3 +74,9 @@ class VerticalScrolledFrame:
 
     def __str__(self):
         return str(self.outer)
+
+    def scroll_to(self, widget):
+        if self.inner.winfo_height() > self.canvas.winfo_height():
+           pos = widget.winfo_rooty() + widget.winfo_height() - self.inner.winfo_rooty() - self.canvas.winfo_height()
+           height = self.inner.winfo_height()
+           self.canvas.yview_moveto(pos / height)

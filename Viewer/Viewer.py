@@ -59,6 +59,9 @@ class Viewer(VerticalScrolledFrame):
             # Move to an existing item
             self.items[to].edit()
 
+            self.update_idletasks()
+            self.scroll_to(self.items[to])
+
             if not item.entryVal.get():
                 self.items.remove(item)
                 item.pack_forget()
@@ -71,6 +74,9 @@ class Viewer(VerticalScrolledFrame):
             newItem.style()
             self.items.append(newItem)
             newItem.pack(fill=tk.X)
+
+            self.update_idletasks()
+            self.scroll_to(newItem)
 
         # If we have moved, set the current item
         item.set()
