@@ -52,18 +52,17 @@ class Viewer(VerticalScrolledFrame):
         to = self.items.index(item) + direction
 
         if to < 0:
-            pass
+            return
         elif to < len(self.items):
             self.items[to].edit()
-            item.set()
         else:
             newItem = Item(self)
             newItem.style()
             self.items.append(newItem)
             newItem.pack(fill=tk.X)
 
-            if not item.string:
-                item.pack_forget()
-                self.items.remove(item)
+        item.set()
 
-            item.set()
+        if not item.entryVal.get():
+            item.pack_forget()
+            self.items.remove(item)
