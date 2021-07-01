@@ -21,15 +21,11 @@ class App(tk.Tk):
         self.mainloop()
 
     def open(self):
-        filename = filedialog.askopenfilename()
-
-        if filename:
+        if filename := filedialog.askopenfilename():
             self.itemFrame.loadFromFile(filename)
 
     def save(self):
-        filename = filedialog.asksaveasfilename()
-
-        if filename:
+        if filename := filedialog.asksaveasfilename():
             self.itemFrame.saveToFile(filename)
 
     def attachMenuBar(self):
