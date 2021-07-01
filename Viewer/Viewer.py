@@ -16,29 +16,28 @@ class Viewer(VerticalScrolledFrame):
                 i.entryVal.set(line.rstrip())
                 i.set()
                 self.items.append(i)
-
-        end = Item(self)
-        self.items.append(end)
         
         [i.pack(fill=tk.X) for i in self.items]
+
+        # Edit the first item
+        self.items[0].edit()
         
     def style(self, theme):
-        new = themes.Theme(theme)
-        
-        if self.s:
-            themes.validator.external(self.s, new)
-
-        self.s = new
+        self.s = theme
 
         self.configure(**self.s.appStyle['Frame'])
         themes.repurpose(self.canvas, self.s.appStyle['Frame'], 'bg')
 
         for i in self.items:
             i.style()
-            i.packStyles()
+        
+    def restyle(self, new):
+        themes.validator.external(self.s, new)
+        self.style(new)
 
     def move(self, item, direction):
         to = self.items.index(item) + direction
+
         if to < 0:
             pass
         elif to < len(self.items):

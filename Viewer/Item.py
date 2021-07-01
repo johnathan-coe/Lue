@@ -7,7 +7,7 @@ class Item(tk.Frame):
     def __init__(self, frame):
         super().__init__(frame)
         self.frame = frame
-        
+
         self.string = ''
     
         self.label = tk.Label(self, wraplength=500)
@@ -21,17 +21,18 @@ class Item(tk.Frame):
         self.entry.bind('<Down>', move(+1))
         self.entry.bind('<Up>', move(-1))
 
+        self.editing = True
         # Style components and switch to editing mode
         self.edit()
 
     def packStyles(self):
-        """
-        Call this after self.label.pack() or when changing styles
-        """
-
         c, _ = extensions.classify(self.string)
+        styles = self.frame.s.packStyles.get(c, {})
         
-        self.label.pack_configure(**self.frame.s.packStyles.get(c, {}))
+        if self.editing:
+            self.entry.pack_configure(**styles)
+        else:
+            self.label.pack_configure(**styles)
 
     def style(self):
         """
@@ -53,10 +54,13 @@ class Item(tk.Frame):
         # Hand off to rendering function
         r.render(self, self.frame.s.styles[c])
 
+        self.packStyles()
+
     def set(self):
         """
         Called to move this Item out of editing mode
         """
+        self.editing = False
 
         # If we've updated the entry, update the label
         if self.string != self.entryVal.get():
@@ -73,13 +77,11 @@ class Item(tk.Frame):
     def edit(self, e=None):
         """
         Called to move this Item into editing mode.
-        
-        No stylng is performed in this method!
         """
+        self.editing = True
+
+        self.style()
 
         self.label.pack_forget()
         self.entry.pack(fill=tk.X)
-        
-        c, _, = extensions.classify(self.string)
-        self.entry.pack_configure(**self.frame.s.packStyles.get(c, {}))
         self.entry.focus_set()
