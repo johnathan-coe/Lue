@@ -36,6 +36,10 @@ class Viewer(VerticalScrolledFrame):
         self.style(new)
 
     def move(self, item, direction):
+        # We can't move from an item that is not in editing mode
+        if not item.editing:
+            return
+            
         to = self.items.index(item) + direction
 
         if to < 0:
