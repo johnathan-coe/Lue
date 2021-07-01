@@ -1,6 +1,7 @@
 from io import BytesIO
 from sympy import preview
 from PIL import ImageTk, Image
+import functools
 
 PREFIX = "$"
 
@@ -9,7 +10,8 @@ PREFIX = "$"
 def lex(string):
     return "tex", TexMath
 
-def getImage(math, styles):
+@functools.cache
+def getImage(math, bg, fg):
     out = BytesIO()
         
     preamble = "\n".join([
@@ -17,8 +19,8 @@ def getImage(math, styles):
         "\\usepackage{xcolor}",
         "\\pagenumbering{gobble}",
         "\\begin{document}",
-        f"\\definecolor{{bg}}{{HTML}}{{{styles['bg'][1:]}}}\\pagecolor{{bg}}" if 'bg' in styles else "",
-        f"\\definecolor{{fg}}{{HTML}}{{{styles['fg'][1:]}}}\\color{{fg}}" if 'fg' in styles else "",
+        f"\\definecolor{{bg}}{{HTML}}{{{bg[1:]}}}\\pagecolor{{bg}}" if 'bg' else "",
+        f"\\definecolor{{fg}}{{HTML}}{{{fg[1:]}}}\\color{{fg}}" if 'fg' else "",
     ])
     preview(f'$${math}$$', output='png', viewer='BytesIO', preamble=preamble, outputbuffer=out, euler=False)
 
@@ -31,7 +33,7 @@ class TexMath:
             # Remove the $
             math = item.string[1:].strip()
             
-            img = getImage(math, styles)
+            img = getImage(math, styles.get('bg', ''), styles.get('fg', ''))
             item.label.image = ImageTk.PhotoImage(img)
             # Add image and specified styling from stylesheet
             item.label.configure(image=item.label.image, **styles)
@@ -44,4 +46,4 @@ class TexMath:
         # Remove the $
         math = item.string[1:].strip()
 
-        return True, getImage(math, style)
+        return True, getImage(math, style.get('bg', ''), style.get('fg', ''))
