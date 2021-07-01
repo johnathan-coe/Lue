@@ -7,6 +7,7 @@ class Viewer(VerticalScrolledFrame):
     def __init__(self, parent):
         super().__init__(parent)
         self.items = []
+        self.s = None
         
     def loadFromFile(self, fileName):
         with open(fileName, 'r') as f:
@@ -22,7 +23,12 @@ class Viewer(VerticalScrolledFrame):
         [i.pack(fill=tk.X) for i in self.items]
         
     def style(self, theme):
-        self.s = themes.Theme(theme)
+        new = themes.Theme(theme)
+        
+        if self.s:
+            themes.validator.external(self.s, new)
+
+        self.s = new
 
         self.configure(**self.s.appStyle['Frame'])
         themes.repurpose(self.canvas, self.s.appStyle['Frame'], 'bg')
