@@ -54,15 +54,21 @@ class Viewer(VerticalScrolledFrame):
         if to < 0:
             return
         elif to < len(self.items):
+            # Move to an existing item
             self.items[to].edit()
+
+            if not item.entryVal.get():
+                self.items.remove(item)
+                item.pack_forget()
+        elif not item.entryVal.get():
+            # Ignore if we are going beyond the end with an empty entry
+            return
         else:
+            # Add a new item to the end
             newItem = Item(self)
             newItem.style()
             self.items.append(newItem)
             newItem.pack(fill=tk.X)
 
+        # If we have moved, set the current item
         item.set()
-
-        if not item.entryVal.get():
-            item.pack_forget()
-            self.items.remove(item)
