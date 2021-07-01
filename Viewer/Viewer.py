@@ -10,6 +10,10 @@ class Viewer(VerticalScrolledFrame):
         self.s = None
         
     def loadFromFile(self, fileName):
+        # Remove the old items
+        [i.pack_forget() for i in self.items]
+        self.items = []
+
         with open(fileName, 'r') as f:
             for line in f.readlines():
                 i = Item(self)
@@ -21,6 +25,11 @@ class Viewer(VerticalScrolledFrame):
 
         # Edit the first item
         self.items[0].edit()
+
+    def saveToFile(self, fileName):
+        with open(fileName, 'w') as f:
+            f.writelines('\n'.join([l.entryVal.get() for l in self.items]))
+            f.write('\n')
         
     def style(self, theme):
         self.s = theme
@@ -45,11 +54,9 @@ class Viewer(VerticalScrolledFrame):
         if to < 0:
             pass
         elif to < len(self.items):
-            item.set()
             self.items[to].edit()
-        else:
             item.set()
-
+        else:
             newItem = Item(self)
             newItem.style()
             self.items.append(newItem)
@@ -58,3 +65,5 @@ class Viewer(VerticalScrolledFrame):
             if not item.string:
                 item.pack_forget()
                 self.items.remove(item)
+
+            item.set()
