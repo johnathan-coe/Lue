@@ -2,10 +2,10 @@
 ^PiName.png
 ## About
 PiName = Piname is not a Markdown editor
-# Extensions
-## TeX Math
-$ \frac{-b \pm \sqrt{b^2-4ac}}{2a}
-## Bulleted lists
+## Extensions
+### TeX Math
+$ x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}
+### Bulleted lists
 -Python
 -Java
 -C++
