@@ -6,6 +6,12 @@ from exporters import HTML
 from Viewer.Viewer import Viewer
 from tkinter import filedialog
 
+FILETYPES = (
+    ("PiName Files", "*.pnm"),
+    ("Markdown files", "*.md"),
+    ("All files", "*.*"),
+)
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -27,7 +33,7 @@ class App(tk.Tk):
         self.itemFrame.add("").edit()
 
     def open(self):
-        if filename := filedialog.askopenfilename():
+        if filename := filedialog.askopenfilename(filetypes=FILETYPES):
             self.itemFrame.loadFromFile(filename)
             self.filename = filename
 
@@ -38,7 +44,7 @@ class App(tk.Tk):
             self.saveas()
 
     def saveas(self):
-        if filename := filedialog.asksaveasfilename():
+        if filename := filedialog.asksaveasfilename(filetypes=FILETYPES):
             self.itemFrame.saveToFile(filename)
             self.filename = filename
 
