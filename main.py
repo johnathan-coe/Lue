@@ -9,10 +9,11 @@ from tkinter import filedialog
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.filename = 'welcome.pnm'
 
         self.itemFrame = Viewer(self)
         self.itemFrame.style(themes.Theme(config.THEME))
-        self.itemFrame.loadFromFile('welcome.pnm')
+        self.itemFrame.loadFromFile(self.filename)
         self.itemFrame.items[0].edit()
         
         self.itemFrame.pack(fill=tk.BOTH, expand=True)
@@ -23,10 +24,18 @@ class App(tk.Tk):
     def open(self):
         if filename := filedialog.askopenfilename():
             self.itemFrame.loadFromFile(filename)
+            self.filename = filename
 
     def save(self):
+        if self.filename:
+            self.itemFrame.saveToFile(self.filename)
+        else:
+            self.saveas()
+
+    def saveas(self):
         if filename := filedialog.asksaveasfilename():
             self.itemFrame.saveToFile(filename)
+            self.filename = filename
 
     def attachMenuBar(self):
         # Define a menu
@@ -36,6 +45,7 @@ class App(tk.Tk):
         fileMenu = tk.Menu(menu)
         fileMenu.add_command(label="Open", command=self.open)
         fileMenu.add_command(label="Save", command=self.save)
+        fileMenu.add_command(label="Save As", command=self.saveas)
         menu.add_cascade(label="File", menu=fileMenu)
 
         themeMenu = tk.Menu(menu)
