@@ -27,7 +27,12 @@ class Item(tk.Frame):
 
     def packStyles(self):
         c, _ = extensions.classify(self.string)
-        styles = self.frame.s.packStyles.get(c, {})
+        # Fallback on body styles then blank dict
+        styles = self.frame.s.packStyles.get(c,
+                    self.frame.s.packStyles.get("body",
+                        {}
+                    )
+                )
         
         if self.editing:
             self.entry.pack_configure(**styles)
@@ -44,15 +49,22 @@ class Item(tk.Frame):
         # Get info from string
         c, r = extensions.classify(self.string)
 
-        self.entry.configure(**self.frame.s.styles[c])
-        themes.repurpose(self.entry, self.frame.s.styles[c], 'fg', 'insertbackground')
+        # Fallback on body styles then blank dict
+        styles = self.frame.s.styles.get(c,
+                    self.frame.s.styles.get("body",
+                        {}
+                    )
+                )
+
+        self.entry.configure(**styles)
+        themes.repurpose(self.entry, styles, 'fg', 'insertbackground')
 
         # Wipe any existing image
         self.label.image = None
         self.label.configure(image='')
 
         # Hand off to rendering function
-        r.render(self, self.frame.s.styles[c])
+        r.render(self, styles)
 
         self.packStyles()
 
