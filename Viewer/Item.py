@@ -10,7 +10,7 @@ class Item(tk.Frame):
 
         self.string = ''
     
-        self.label = tk.Label(self, wraplength=500)
+        self.label = tk.Label(self, wraplength=0)
         self.entryVal = tk.StringVar()
         self.entryVal.set(line)
         self.entry = tk.Entry(self, textvariable=self.entryVal)
@@ -112,7 +112,6 @@ class Item(tk.Frame):
         self.editing = True
 
         self.style()
-
         self.label.pack_forget()
         self.entry.pack(fill=tk.X)
         self.entry.focus_set()
