@@ -30,9 +30,6 @@ class Viewer(VerticalScrolledFrame):
                 if not line.rstrip(): continue
                 self.add(line)
 
-        # Edit the first item
-        self.items[0].edit()
-
     def saveToFile(self, fileName):
         with open(fileName, 'w') as f:
             f.writelines('\n'.join([l.entryVal.get() for l in self.items]))
