@@ -56,11 +56,11 @@ class Viewer(VerticalScrolledFrame):
         if to < 0:
             return
         elif to < len(self.items):
-            # Move to an existing item
-            self.items[to].edit()
-
             self.update_idletasks()
             self.scroll_to(self.items[to])
+
+            # Move to an existing item
+            self.items[to].edit()
 
             if not item.entryVal.get():
                 self.items.remove(item)
