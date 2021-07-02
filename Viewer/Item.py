@@ -15,6 +15,8 @@ class Item(tk.Frame):
         self.entryVal.set(line)
         self.entry = tk.Entry(self, textvariable=self.entryVal)
 
+        self.bind('<Configure>', self.reflow)
+
         move = lambda d: lambda e: self.frame.move(self, d)
 
         # Keyboard bindings
@@ -26,6 +28,9 @@ class Item(tk.Frame):
         # Style components and switch to editing mode
         self.set()
         self.editing = False
+
+    def reflow(self, e=None):
+        self.label.configure(wraplength=e.width)
 
     def enter(self, e=None):
         self.frame.insert(self)

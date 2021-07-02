@@ -18,7 +18,7 @@ class VerticalScrolledFrame:
         self.outer = tk.Frame(master, **kwargs)
 
         self.vsb = tk.Scrollbar(self.outer, orient=tk.VERTICAL)
-        self.vsb.pack(fill=tk.Y, side=tk.RIGHT)
+        self.vsb.pack(fill=tk.Y, side=tk.RIGHT, padx=(10,0))
         self.canvas = tk.Canvas(self.outer, highlightthickness=0, width=width, height=height, bg=bg)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.canvas.bind("<Configure>", self._on_canvas_configure)
