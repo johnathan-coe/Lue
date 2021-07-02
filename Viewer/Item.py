@@ -4,7 +4,7 @@ import themes
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
-    def __init__(self, frame):
+    def __init__(self, frame, line=""):
         super().__init__(frame)
         self.frame = frame
 
@@ -12,19 +12,23 @@ class Item(tk.Frame):
     
         self.label = tk.Label(self, wraplength=500)
         self.entryVal = tk.StringVar()
+        self.entryVal.set(line)
         self.entry = tk.Entry(self, textvariable=self.entryVal)
 
         move = lambda d: lambda e: self.frame.move(self, d)
 
         # Keyboard bindings
         self.entry.bind('<BackSpace>', self.back)
-        self.entry.bind('<Return>', lambda e: self.frame.insert(self))
+        self.entry.bind('<Return>', self.enter)
         self.entry.bind('<Down>', move(+1))
         self.entry.bind('<Up>', move(-1))
 
         # Style components and switch to editing mode
-        self.edit()
-        self.editing = True
+        self.set()
+        self.editing = False
+
+    def enter(self, e=None):
+        self.frame.insert(self)
 
     def back(self, e=None):
         # If we're deleting at the left of the entry

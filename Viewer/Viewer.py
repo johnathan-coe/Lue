@@ -14,9 +14,7 @@ class Viewer(VerticalScrolledFrame):
         self.items = []
 
     def append(self, line):
-        i = Item(self)
-        i.entryVal.set(line.rstrip())
-        i.set()
+        i = Item(self, line.rstrip())
         self.items.append(i)
 
         i.pack(fill=tk.X)
@@ -24,14 +22,16 @@ class Viewer(VerticalScrolledFrame):
 
     def insert(self, priorItem):
         index = self.items.index(priorItem) + 1
+        # Ignore if the last element is empty and we're trying to add to the end
+        if index == len(self.items) and not priorItem.entryVal.get():
+            return
 
         # Take everything after the item off the screen
         for item in self.items[index:]:
             item.pack_forget()
 
-        # Add the iten to the array
+        # Add the item to the array
         i = Item(self)
-        i.set()
         self.items.insert(index, i)
 
         # Repack
@@ -93,14 +93,7 @@ class Viewer(VerticalScrolledFrame):
             # Ignore if we are going beyond the end with an empty entry
             return
         else:
-            # Add a new item to the end
-            newItem = Item(self)
-            newItem.style()
-            self.items.append(newItem)
-            newItem.pack(fill=tk.X)
-
-            self.update_idletasks()
-            self.scroll_to(newItem)
+            self.insert(item)
 
         # If we have moved, set the current item
         item.set()
