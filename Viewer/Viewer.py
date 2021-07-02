@@ -13,7 +13,7 @@ class Viewer(VerticalScrolledFrame):
         [i.pack_forget() for i in self.items]
         self.items = []
 
-    def add(self, line):
+    def append(self, line):
         i = Item(self)
         i.entryVal.set(line.rstrip())
         i.set()
@@ -22,13 +22,31 @@ class Viewer(VerticalScrolledFrame):
         i.pack(fill=tk.X)
         return i
 
+    def insert(self, priorItem):
+        index = self.items.index(priorItem) + 1
+
+        # Take everything after the item off the screen
+        for item in self.items[index:]:
+            item.pack_forget()
+
+        # Add the iten to the array
+        i = Item(self)
+        i.set()
+        self.items.insert(index, i)
+
+        # Repack
+        for item in self.items[index:]:
+            item.pack(fill=tk.X)
+
+        self.move(priorItem, +1)
+
     def loadFromFile(self, fileName):
         self.clear()
 
         with open(fileName, 'r') as f:
             for line in f.readlines():
                 if not line.rstrip(): continue
-                self.add(line)
+                self.append(line)
 
     def saveToFile(self, fileName):
         with open(fileName, 'w') as f:
@@ -47,6 +65,10 @@ class Viewer(VerticalScrolledFrame):
     def restyle(self, new):
         themes.validator.external(self.s, new)
         self.style(new)
+
+    def remove(self, item):
+        self.items.remove(item)
+        item.pack_forget()
 
     def move(self, item, direction):
         # We can't move from an item that is not in editing mode

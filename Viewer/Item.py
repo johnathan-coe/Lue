@@ -17,7 +17,8 @@ class Item(tk.Frame):
         move = lambda d: lambda e: self.frame.move(self, d)
 
         # Keyboard bindings
-        self.entry.bind('<Return>', move(+1))
+        self.entry.bind('<BackSpace>', self.back)
+        self.entry.bind('<Return>', lambda e: self.frame.insert(self))
         self.entry.bind('<Down>', move(+1))
         self.entry.bind('<Up>', move(-1))
 
@@ -25,7 +26,16 @@ class Item(tk.Frame):
         self.edit()
         self.editing = True
 
+    def back(self, e=None):
+        # If we're deleting at the left of the entry
+        if self.entry.index(tk.INSERT) == 0:
+            self.frame.move(self, -1)
+
     def packStyles(self):
+        """
+        Apply pack styles, in turn packing the widget
+        """
+
         c, _ = extensions.classify(self.string)
         # Fallback on body styles then blank dict
         styles = self.frame.s.packStyles.get(c,
@@ -41,7 +51,7 @@ class Item(tk.Frame):
 
     def style(self):
         """
-        Apply the relevant styling attributes to the label and 
+        Apply the relevant styling attributes to the label 
         """
 
         themes.repurpose(self, self.frame.s.appStyle['Frame'], 'bg')

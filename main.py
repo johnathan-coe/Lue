@@ -30,11 +30,12 @@ class App(tk.Tk):
     def new(self):
         self.filename = None
         self.itemFrame.clear()
-        self.itemFrame.add("").edit()
+        self.itemFrame.append("").edit()
 
     def open(self):
         if filename := filedialog.askopenfilename(filetypes=FILETYPES):
             self.itemFrame.loadFromFile(filename)
+            self.itemFrame.items[0].edit()
             self.filename = filename
 
     def save(self):
