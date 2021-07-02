@@ -21,6 +21,11 @@ class App(tk.Tk):
         self.attachMenuBar()
         self.mainloop()
 
+    def new(self):
+        self.filename = None
+        self.itemFrame.clear()
+        self.itemFrame.add("").edit()
+
     def open(self):
         if filename := filedialog.askopenfilename():
             self.itemFrame.loadFromFile(filename)
@@ -43,6 +48,7 @@ class App(tk.Tk):
         self.config(menu=menu)
         
         fileMenu = tk.Menu(menu)
+        fileMenu.add_command(label="New", command=self.new)
         fileMenu.add_command(label="Open", command=self.open)
         fileMenu.add_command(label="Save", command=self.save)
         fileMenu.add_command(label="Save As", command=self.saveas)

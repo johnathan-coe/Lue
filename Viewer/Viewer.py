@@ -9,21 +9,26 @@ class Viewer(VerticalScrolledFrame):
         self.items = []
         self.s = None
         
-    def loadFromFile(self, fileName):
-        # Remove the old items
+    def clear(self):
         [i.pack_forget() for i in self.items]
         self.items = []
+
+    def add(self, line):
+        i = Item(self)
+        i.entryVal.set(line.rstrip())
+        i.set()
+        self.items.append(i)
+
+        i.pack(fill=tk.X)
+        return i
+
+    def loadFromFile(self, fileName):
+        self.clear()
 
         with open(fileName, 'r') as f:
             for line in f.readlines():
                 if not line.rstrip(): continue
-
-                i = Item(self)
-                i.entryVal.set(line.rstrip())
-                i.set()
-                self.items.append(i)
-        
-        [i.pack(fill=tk.X) for i in self.items]
+                self.add(line)
 
         # Edit the first item
         self.items[0].edit()

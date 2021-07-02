@@ -21,9 +21,9 @@ class Item(tk.Frame):
         self.entry.bind('<Down>', move(+1))
         self.entry.bind('<Up>', move(-1))
 
-        self.editing = True
         # Style components and switch to editing mode
         self.edit()
+        self.editing = True
 
     def packStyles(self):
         c, _ = extensions.classify(self.string)
