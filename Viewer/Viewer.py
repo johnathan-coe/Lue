@@ -32,7 +32,7 @@ class Viewer(VerticalScrolledFrame):
 
     def saveToFile(self, fileName):
         with open(fileName, 'w') as f:
-            f.writelines('\n'.join([l.entryVal.get() for l in self.items]))
+            f.writelines('\n'.join([l.entryVal.get() for l in self.items if l.entryVal.get()]))
             f.write('\n')
         
     def style(self, theme):

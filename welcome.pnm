@@ -1,12 +1,13 @@
 # Welcome to PiName!
+^PiName.png
 ## About
 PiName = Piname is not a Markdown editor
-## Examples
+# Extensions
+## TeX Math
 $ \frac{-b \pm \sqrt{b^2-4ac}}{2a}
-### This is a list
--The first list item
--The second list item
--The third list item
-#Images
-^PiName.png
-
+## Bulleted lists
+-Python
+-Java
+-C++
+-Nim
+-Javascript
