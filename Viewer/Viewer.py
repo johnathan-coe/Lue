@@ -10,17 +10,28 @@ class Viewer(VerticalScrolledFrame):
         self.s = None
         
     def clear(self):
+        """
+        Remove everything from the viewer
+        """
+
         [i.pack_forget() for i in self.items]
         self.items = []
 
     def append(self, line):
+        """
+        Add an item to the top of the viewer and return it
+        """
+
         i = Item(self, line.rstrip())
         self.items.append(i)
-
         i.pack(fill=tk.X)
         return i
 
     def insert(self, priorItem):
+        """
+        Insert a new, empty item into the viewer, following another one.
+        """
+
         index = self.items.index(priorItem) + 1
         # Ignore if the last element is empty and we're trying to add to the end
         if index == len(self.items) and not priorItem.entryVal.get():
@@ -41,6 +52,10 @@ class Viewer(VerticalScrolledFrame):
         self.move(priorItem, +1)
 
     def loadFromFile(self, fileName):
+        """
+        Load a file into the viewer, given a filename
+        """
+        
         self.clear()
 
         with open(fileName, 'r') as f:
@@ -49,11 +64,19 @@ class Viewer(VerticalScrolledFrame):
                 self.append(line)
 
     def saveToFile(self, fileName):
+        """
+        Save the content of the viewer to a file, given a filename
+        """
+
         with open(fileName, 'w') as f:
             f.writelines('\n'.join([l.entryVal.get() for l in self.items if l.entryVal.get()]))
             f.write('\n')
         
     def style(self, theme):
+        """
+        Apply a theme to the viewer and its content
+        """
+
         self.s = theme
 
         self.configure(**self.s.appStyle['Frame'])
@@ -64,14 +87,26 @@ class Viewer(VerticalScrolledFrame):
             i.style()
         
     def restyle(self, new):
+        """
+        Apply a new theme, ensuring external consistency.
+        """
+
         themes.validator.external(self.s, new)
         self.style(new)
 
     def remove(self, item):
+        """
+        Remove an item from the viewer.
+        """
+        
         self.items.remove(item)
         item.pack_forget()
 
     def move(self, item, direction):
+        """
+        Attempt a move in a particular direction, given an element.
+        """
+        
         # We can't move from an item that is not in editing mode
         if not item.editing:
             return
