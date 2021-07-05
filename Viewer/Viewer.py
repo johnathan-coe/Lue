@@ -58,6 +58,7 @@ class Viewer(VerticalScrolledFrame):
 
         self.configure(**self.s.appStyle['Frame'])
         themes.repurpose(self.canvas, self.s.appStyle['Frame'], 'bg')
+        themes.repurpose(self.inner, self.s.appStyle['Frame'], 'bg')
 
         for i in self.items:
             i.style()
