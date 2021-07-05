@@ -8,8 +8,6 @@ class Item(tk.Frame):
         super().__init__(frame)
         self.frame = frame
 
-        self.string = ''
-    
         self.label = tk.Label(self, wraplength=0)
         self.entryVal = tk.StringVar()
         self.entryVal.set(line)
@@ -25,9 +23,18 @@ class Item(tk.Frame):
         self.entry.bind('<Down>', move(+1))
         self.entry.bind('<Up>', move(-1))
 
+        # The string that the label is displaying
+        self.renderedString = ''
+
         # Style components and switch to editing mode
         self.set()
         self.editing = False
+
+    def get(self):
+        """
+        Get the value of this Item as a string
+        """
+        return self.entryVal.get()
 
     def reflow(self, e=None):
         self.label.configure(wraplength=e.width)
@@ -45,7 +52,7 @@ class Item(tk.Frame):
         Apply pack styles, in turn packing the widget
         """
 
-        c, _ = extensions.classify(self.string)
+        c, _ = extensions.classify(self.renderedString)
         # Fallback on body styles then blank dict
         styles = self.frame.s.packStyles.get(c,
                     self.frame.s.packStyles.get("body",
@@ -66,7 +73,7 @@ class Item(tk.Frame):
         themes.repurpose(self, self.frame.s.appStyle['Frame'], 'bg')
 
         # Get info from string
-        c, r = extensions.classify(self.string)
+        c, r = extensions.classify(self.renderedString)
 
         # Fallback on body styles then blank dict
         styles = self.frame.s.styles.get(c,
@@ -94,8 +101,8 @@ class Item(tk.Frame):
         self.editing = False
 
         # If we've updated the entry, update the label
-        if self.string != self.entryVal.get():
-            self.string = self.entryVal.get()
+        if self.renderedString != self.entryVal.get():
+            self.renderedString = self.entryVal.get()
             # Restyle in case the element has changed its type
             self.style()
 

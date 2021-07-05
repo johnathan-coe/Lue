@@ -1,7 +1,7 @@
 class PlainText:
     @staticmethod
     def render(item, style):
-        text = item.string
+        text = item.get()
         while text and text[0] in '# ':
             text = text[1:]
             
@@ -9,4 +9,4 @@ class PlainText:
 
     @staticmethod
     def export(item, style):
-        return False, item.string
+        return False, item.get()

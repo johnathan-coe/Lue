@@ -10,11 +10,11 @@ def lex(string):
 class ImageRenderer:
     @staticmethod
     def render(item, styles):
-        item.label.image = ImageTk.PhotoImage(Image.open(item.string[1:]))
+        item.label.image = ImageTk.PhotoImage(Image.open(item.get()[1:]))
         
         # Add image and specified styling from stylesheet
         item.label.configure(image=item.label.image, **styles)
 
     @staticmethod
     def export(item, style):
-        return True, Image.open(item.string[1:])
+        return True, Image.open(item.get()[1:])

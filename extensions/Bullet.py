@@ -12,10 +12,10 @@ def lex(string):
 class TexMath:
     @staticmethod
     def render(item, style):
-        text = item.string[1:]
+        text = item.get()[1:]
             
         item.label.configure(text="• " + text, **style)
 
     @staticmethod
     def export(item, style):
-        return False, item.string[1:].strip()
+        return False, item.get()[1:].strip()

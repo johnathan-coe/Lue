@@ -31,7 +31,7 @@ class TexMath:
     def render(item, styles):
         try:
             # Remove the $
-            math = item.string[1:].strip()
+            math = item.get()[1:].strip()
             
             img = getImage(math, styles.get('bg', ''), styles.get('fg', ''))
             item.label.image = ImageTk.PhotoImage(img)
@@ -44,6 +44,6 @@ class TexMath:
     @staticmethod
     def export(item, style):
         # Remove the $
-        math = item.string[1:].strip()
+        math = item.get()[1:].strip()
 
         return True, getImage(math, style.get('bg', ''), style.get('fg', ''))
