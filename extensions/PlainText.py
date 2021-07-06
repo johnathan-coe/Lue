@@ -1,12 +1,14 @@
+def strip(text):
+    while text and text[0] in '# ':
+        text = text[1:]
+
+    return text
+
 class PlainText:
     @staticmethod
-    def render(item, style):
-        text = item.get()
-        while text and text[0] in '# ':
-            text = text[1:]
-            
-        item.label.configure(text=text, **style)
+    def render(item, style):            
+        item.label.configure(text=strip(item.get()), **style)
 
     @staticmethod
     def export(item, style):
-        return False, item.get()
+        return False, strip(item.get())
