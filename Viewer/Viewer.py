@@ -76,6 +76,8 @@ class Viewer(VerticalScrolledFrame):
         """
         Apply a theme to the viewer and its content
         """
+        if self.s:
+            themes.validator.external(self.s, theme)
 
         self.s = theme
 
@@ -85,14 +87,6 @@ class Viewer(VerticalScrolledFrame):
 
         for i in self.items:
             i.style()
-        
-    def restyle(self, new):
-        """
-        Apply a new theme, ensuring external consistency.
-        """
-
-        themes.validator.external(self.s, new)
-        self.style(new)
 
     def remove(self, item):
         """
