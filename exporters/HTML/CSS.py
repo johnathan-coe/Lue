@@ -1,4 +1,3 @@
-
 def tkPaddingToCSS(k, v, prefix='padding'):
     sideA, sideB = {'padx': ('left', 'right'),
                     'pady': ('top', 'bottom')}[k]
@@ -16,18 +15,21 @@ def tkPaddingToCSS(k, v, prefix='padding'):
 
     return out
 
+def tkFontToCSS(v):
+    if len(v) == 2:
+        return f'font: {v[1]}pt "{v[0]}";\n'
+    elif len(v) == 3:
+        return f'font: {v[2]} {v[1]}pt "{v[0]}";\n'
+    else:
+        print('WARNING: Unsupported tkinter font specification!', v)
+
 def styleDictToCSS(d):
     m = {'bg': 'background', 'fg': 'color'}
 
     out = ''
     for k, v in d.items():
         if k == 'font':
-            if len(v) == 2:
-                out += f'font: {v[1]}pt "{v[0]}";\n'
-            elif len(v) == 3:
-                out += f'font: {v[2]} {v[1]}pt "{v[0]}";\n'
-            else:
-                print('WARNING: Unsupported tkinter font specification!', v)
+            out += tkFontToCSS(v)
         elif k in ('padx', 'pady'):
             out += tkPaddingToCSS(k, v)
         else:
