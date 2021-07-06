@@ -54,20 +54,22 @@ class App(tk.Tk):
         menu = tk.Menu(self)
         self.config(menu=menu)
         
-        fileMenu = tk.Menu(menu)
-        fileMenu.add_command(label="New", command=self.new)
-        fileMenu.add_command(label="Open", command=self.open)
-        fileMenu.add_command(label="Save", command=self.save)
-        fileMenu.add_command(label="Save As", command=self.saveas)
+        # Build the file menu
+        fileMenu = tk.Menu(menu, tearoff=0)
+        fileCmds = {"New": self.new, "Open": self.open, "Save": self.save, "Save As": self.saveas}
+        [fileMenu.add_command(label=label, command=command) for label, command in fileCmds.items()]
+        # Add it to the top bar
         menu.add_cascade(label="File", menu=fileMenu)
 
-        themeMenu = tk.Menu(menu)
+        # Build a menu for available themes
+        themeMenu = tk.Menu(menu, tearoff=0)
         for theme in config.THEMES:
             themeMenu.add_command(label=theme.split('/')[-1],
                 command=lambda t=theme: self.itemFrame.style(themes.Theme(t)))
         menu.add_cascade(label="Theme", menu=themeMenu)
 
-        exportMenu = tk.Menu(menu)
+        # Build a menu for available exporters 
+        exportMenu = tk.Menu(menu, tearoff=0)
         for exporter in config.EXPORTERS:
             exportMenu.add_command(label=exporter.NAME, command=lambda x=exporter: x.export(self.itemFrame))
         menu.add_cascade(label="Export", menu=exportMenu)
