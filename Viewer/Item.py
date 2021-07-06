@@ -9,8 +9,7 @@ class Item(tk.Frame):
         self.frame = frame
 
         self.label = tk.Label(self, wraplength=0)
-        self.entryVal = tk.StringVar()
-        self.entryVal.set(line)
+        self.entryVal = tk.StringVar(self, line)
         self.entry = tk.Entry(self, textvariable=self.entryVal)
 
         self.bind('<Configure>', self.reflow)
