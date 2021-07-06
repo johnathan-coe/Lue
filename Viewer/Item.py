@@ -37,19 +37,29 @@ class Item(tk.Frame):
         return self.entryVal.get()
 
     def reflow(self, e=None):
+        """
+        Reflow the label when this widget is reconfigured
+        """
         self.label.configure(wraplength=e.width)
 
     def enter(self, e=None):
+        """
+        Pressing enter inserts an item after this one
+        """
         self.frame.insert(self)
 
     def back(self, e=None):
+        """
+        Pressing backpace at the start of a widget, moves to the previous item
+        """
+
         # If we're deleting at the left of the entry
         if self.entry.index(tk.INSERT) == 0:
             self.frame.move(self, -1)
 
     def packStyles(self):
         """
-        Apply pack styles, in turn packing the widget
+        Apply pack styles and pack the widget
         """
 
         c, _ = extensions.classify(self.renderedString)
@@ -98,6 +108,7 @@ class Item(tk.Frame):
         """
         Called to move this Item out of editing mode
         """
+
         self.editing = False
 
         # If we've updated the entry, update the label
@@ -108,17 +119,16 @@ class Item(tk.Frame):
 
         # Remove entry box and place label on the screen 
         self.entry.pack_forget()
-
-        self.label.pack()
         self.packStyles()
         
     def edit(self, e=None):
         """
         Called to move this Item into editing mode.
         """
+
         self.editing = True
+        self.label.pack_forget()
 
         self.style()
-        self.label.pack_forget()
-        self.entry.pack(fill=tk.X)
+        self.entry.pack_configure(fill=tk.X)
         self.entry.focus_set()
