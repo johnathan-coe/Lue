@@ -14,7 +14,7 @@ class TexMath:
     def render(item, style):
         text = item.get()[1:]
             
-        item.label.configure(text="• " + text, **style)
+        item.label.configure(text="• " + text.strip(), **style)
 
     @staticmethod
     def export(item, style):
