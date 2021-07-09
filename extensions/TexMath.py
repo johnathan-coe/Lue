@@ -28,18 +28,18 @@ def getImage(math, bg, fg):
 
 class TexMath:
     @staticmethod
-    def render(item, styles):
+    def render(string, label, styles):
         try:
             # Remove the $
-            math = item.get()[1:].strip()
+            math = string[1:].strip()
             
             img = getImage(math, styles.get('bg', ''), styles.get('fg', ''))
-            item.label.image = ImageTk.PhotoImage(img)
+            label.image = ImageTk.PhotoImage(img)
             # Add image and specified styling from stylesheet
-            item.label.configure(image=item.label.image, **styles)
+            label.configure(image=label.image, **styles)
         except RuntimeError:
-            item.label.image = None
-            item.label.configure(image="", text="TeX Error!")
+            label.image = None
+            label.configure(text="TeX Error!")
 
     @staticmethod
     def export(item, style):

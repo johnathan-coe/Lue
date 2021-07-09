@@ -99,7 +99,7 @@ class Item(tk.Frame):
         self.label.configure(image='', text='')
 
         # Hand off to rendering function
-        r.render(self, styles)
+        r.render(self.renderedString, self.label, styles)
 
         self.packStyles()
 

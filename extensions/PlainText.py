@@ -6,8 +6,8 @@ def strip(text):
 
 class PlainText:
     @staticmethod
-    def render(item, style):            
-        item.label.configure(text=strip(item.get()), **style)
+    def render(string, label, style):            
+        label.configure(text=strip(string), **style)
 
     @staticmethod
     def export(item, style):
