@@ -94,9 +94,9 @@ class Item(tk.Frame):
         self.entry.configure(**styles)
         themes.repurpose(self.entry, styles, 'fg', 'insertbackground')
 
-        # Wipe any existing image
+        # Wipe any existing content
         self.label.image = None
-        self.label.configure(image='')
+        self.label.configure(image='', text='')
 
         # Hand off to rendering function
         r.render(self, styles)

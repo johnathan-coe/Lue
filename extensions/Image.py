@@ -10,10 +10,18 @@ def lex(string):
 class ImageRenderer:
     @staticmethod
     def render(item, styles):
-        item.label.image = ImageTk.PhotoImage(Image.open(item.get()[1:]))
+        # Apply styling
+        item.label.configure(**styles)
+        
+        filename = item.get()[1:]
+        try:
+            item.label.image = ImageTk.PhotoImage(Image.open(filename))
+        except FileNotFoundError:
+            item.label.configure(text=f"Image '{filename}' not found!")
+            return
         
         # Add image and specified styling from stylesheet
-        item.label.configure(image=item.label.image, **styles)
+        item.label.configure(image=item.label.image)
 
     @staticmethod
     def export(item, style):
