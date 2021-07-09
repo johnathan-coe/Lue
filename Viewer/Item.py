@@ -64,11 +64,16 @@ class Item(tk.Frame):
         
         return c, r, styles, packStyles
 
-    def packStyles(self):
+    def packWidget(self):
         # Pack the widget with appropriate styles
         _, _, _, packStyles = self.assess()
 
-        [self.label, self.entry][int(self.editing)].pack_configure(**packStyles)
+        if self.editing:
+            self.entry.pack_configure(**packStyles)
+            self.entry.pack_configure(fill=tk.X)
+            self.entry.focus_set()
+        else:
+            self.label.pack_configure(**packStyles)
 
     def style(self):
         themes.repurpose(self, self.frame.s.appStyle['Frame'], 'bg')
@@ -87,7 +92,7 @@ class Item(tk.Frame):
         r.render(self.renderedString, self.label, styles)
 
         # Pack the appropriate widget
-        self.packStyles()
+        self.packWidget()
 
     def set(self):
         self.editing = False
@@ -96,15 +101,12 @@ class Item(tk.Frame):
         # If we've updated the entry, update the label
         if self.renderedString != self.entryVal.get():
             self.renderedString = self.entryVal.get()
-            # Restyle in case the element has changed its type
+            # Restyle
             self.style()
         else:
-            self.packStyles()
+            self.packWidget()
         
     def edit(self, e=None):
         self.editing = True
         self.label.pack_forget()
-
         self.style()
-        self.entry.pack_configure(fill=tk.X)
-        self.entry.focus_set()
