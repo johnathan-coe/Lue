@@ -7,7 +7,7 @@ from Viewer.Viewer import Viewer
 from tkinter import filedialog
 
 FILETYPES = (
-    ("PiName Files", "*.pnm"),
+    ("Lue Files", "*.lue"),
     ("Markdown files", "*.md"),
     ("All files", "*.*"),
 )
@@ -15,12 +15,11 @@ FILETYPES = (
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.filename = 'welcome.pnm'
+        self.filename = 'welcome.lue'
 
         self.itemFrame = Viewer(self)
         self.itemFrame.style(themes.Theme(config.THEME))
         self.itemFrame.loadFromFile(self.filename)
-        self.itemFrame.items[0].edit()
         
         self.itemFrame.pack(fill=tk.BOTH, expand=True)
         

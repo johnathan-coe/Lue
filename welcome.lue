@@ -1,0 +1,16 @@
+^logo.png
+## About
+Lue is an editor and markdown-inspired language that intends to provide straightforward and delightful creation of simple documents.
+## Project Goals
+- Simplicity
+- Extensibility
+- Exportability
+## Extensions
+Without extensions, Lue can only render headings and plain text. Below are samples of the extensions that come with your distribution.
+### TeX Math
+$ x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}
+Note that this requires SymPy and a LaTeX installation.
+### Bulleted lists
+- Just
+- Like
+- This
