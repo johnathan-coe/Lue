@@ -16,4 +16,4 @@ class Bullet:
 
     @staticmethod
     def export(item, style):
-        return False, item.get()[1:].strip()
+        return item.get()[1:].strip()

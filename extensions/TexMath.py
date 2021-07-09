@@ -46,4 +46,4 @@ class TexMath:
         # Remove the $
         math = item.get()[1:].strip()
 
-        return True, getImage(math, style.get('bg', ''), style.get('fg', ''))
+        return getImage(math, style.get('bg', ''), style.get('fg', ''))

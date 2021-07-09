@@ -8,9 +8,6 @@ def export(app):
 
     imageCount = 0
 
-    # Styles used
-    used = set()
-
     out = """<html>
 <head>
 <meta charset="UTF-8">
@@ -19,17 +16,22 @@ def export(app):
 <body>
 """
 
+    style = {}
+    packs = {}
+
     for i in app.items:
         # Get info from string
-        c, r = extensions.classify(i.get())
-        used.add(c)
+        c, r, styles, packStyles = i.assess()
+        tag = m.get(c, c)
+        style[tag] = styles
+        packs[tag] = packStyles
 
-        image, output = r.export(i, app.s.styles.get(c, app.s.styles.get('body', {})))
+        output = r.export(i, styles)
 
-        if not image:
-            out += f"<{m.get(c, c)}>"
+        if type(output) == str:
+            out += f"<{tag}>"
             out += output
-            out += f"</{m.get(c, c)}>"
+            out += f"</{tag}>"
             out += "\n"
         else:
             path = f"img/{imageCount}.png"
@@ -44,4 +46,4 @@ def export(app):
         f.write(out)
 
     with open("rendered/index.css", "w") as f:
-        f.write(CSS.generateCSS(m, used, app.s))
+        f.write(CSS.generateCSS(style, packs, app.s))

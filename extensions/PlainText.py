@@ -11,4 +11,4 @@ class PlainText:
 
     @staticmethod
     def export(item, style):
-        return False, strip(item.get())
+        return strip(item.get())

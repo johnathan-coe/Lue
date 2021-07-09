@@ -56,23 +56,36 @@ class Item(tk.Frame):
         if self.entry.index(tk.INSERT) == 0:
             self.frame.move(self, -1)
 
-    def packStyles(self):
-        """
-        Apply pack styles and pack the widget
-        """
+    def assess(self):
+        # Get info from string
+        c, r = extensions.classify(self.renderedString)
 
-        c, _ = extensions.classify(self.renderedString)
-        # Fallback on body styles then blank dict
-        styles = self.frame.s.packStyles.get(c,
+        # Get styles
+        styles = self.frame.s.styles.get(c,
+                    self.frame.s.styles.get("body",
+                        {}
+                    )
+                )
+
+        packStyles = self.frame.s.packStyles.get(c,
                     self.frame.s.packStyles.get("body",
                         {}
                     )
                 )
         
+        return c, r, styles, packStyles
+
+    def packStyles(self):
+        """
+        Apply pack styles and pack the widget
+        """
+
+        _, _, _, packStyles = self.assess()
+        
         if self.editing:
-            self.entry.pack_configure(**styles)
+            self.entry.pack_configure(**packStyles)
         else:
-            self.label.pack_configure(**styles)
+            self.label.pack_configure(**packStyles)
 
     def style(self):
         """
@@ -81,15 +94,7 @@ class Item(tk.Frame):
 
         themes.repurpose(self, self.frame.s.appStyle['Frame'], 'bg')
 
-        # Get info from string
-        c, r = extensions.classify(self.renderedString)
-
-        # Fallback on body styles then blank dict
-        styles = self.frame.s.styles.get(c,
-                    self.frame.s.styles.get("body",
-                        {}
-                    )
-                )
+        _, r, styles, _ = self.assess()
 
         self.entry.configure(**styles)
         themes.repurpose(self.entry, styles, 'fg', 'insertbackground')

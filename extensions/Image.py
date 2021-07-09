@@ -25,4 +25,4 @@ class ImageRenderer:
 
     @staticmethod
     def export(item, style):
-        return True, Image.open(item.get()[1:])
+        return Image.open(item.get()[1:])
