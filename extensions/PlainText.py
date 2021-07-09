@@ -10,5 +10,5 @@ class PlainText:
         label.configure(text=strip(string), **style)
 
     @staticmethod
-    def export(item, style):
-        return strip(item.get())
+    def export(string, style):
+        return strip(string)

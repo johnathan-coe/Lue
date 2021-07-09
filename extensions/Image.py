@@ -24,5 +24,5 @@ class ImageRenderer:
         label.configure(image=label.image)
 
     @staticmethod
-    def export(item, style):
-        return Image.open(item.get()[1:])
+    def export(string, style):
+        return Image.open(string[1:])

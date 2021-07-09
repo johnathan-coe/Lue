@@ -26,7 +26,7 @@ def export(app):
         style[tag] = styles
         packs[tag] = packStyles
 
-        output = r.export(i, styles)
+        output = r.export(i.get(), styles)
 
         if type(output) == str:
             out += f"<{tag}>"

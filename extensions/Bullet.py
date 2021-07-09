@@ -15,5 +15,5 @@ class Bullet:
         label.configure(text="• " + string[1:].strip(), **style)
 
     @staticmethod
-    def export(item, style):
-        return item.get()[1:].strip()
+    def export(string, style):
+        return string[1:].strip()

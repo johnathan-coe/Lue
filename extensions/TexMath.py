@@ -42,8 +42,8 @@ class TexMath:
             label.configure(text="TeX Error!")
 
     @staticmethod
-    def export(item, style):
+    def export(string, style):
         # Remove the $
-        math = item.get()[1:].strip()
+        math = string[1:].strip()
 
         return getImage(math, style.get('bg', ''), style.get('fg', ''))
