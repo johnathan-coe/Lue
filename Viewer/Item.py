@@ -50,17 +50,8 @@ class Item(tk.Frame):
         c, r = extensions.classify(self.renderedString)
 
         # Get styles
-        styles = self.frame.s.styles.get(c,
-                    self.frame.s.styles.get("body",
-                        {}
-                    )
-                )
-
-        packStyles = self.frame.s.packStyles.get(c,
-                    self.frame.s.packStyles.get("body",
-                        {}
-                    )
-                )
+        styles = self.frame.s.styles[c]
+        packStyles = self.frame.s.packStyles[c]
         
         return c, r, styles, packStyles
 

@@ -1,5 +1,6 @@
 import configparser
 import os
+from collections import defaultdict
 
 # Return string as a list if it is in CSV, otherwise return the string
 def csvParse(string):
@@ -17,9 +18,14 @@ def parseConfig(path):
     data = {section: dict(cfg[section]) for section in cfg}
 
     # Apply default styles to all elements
-    globalStyles = data.get('DEFAULT', {})
-    applied = {section: dict(globalStyles, **data[section]) for section in data if section != "DEFAULT" }
+    globalStyles = data['DEFAULT']
+    applied = {section: dict(globalStyles, **data[section]) for section in data}
 
     # Split csv values
-    return {section: {key: csvParse(applied[section][key]) for key in applied[section]} for section in applied}
+    split = {section: {key: csvParse(applied[section][key]) for key in applied[section]} for section in applied}
 
+    globalStyles = split.pop('DEFAULT')
+    
+    out = defaultdict(lambda g=globalStyles: g)
+    out.update(split)
+    return out
