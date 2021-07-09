@@ -25,34 +25,23 @@ class Item(tk.Frame):
         # The string that the label is displaying
         self.renderedString = ''
 
-        # Style components and switch to editing mode
+        # Set this Item
         self.set()
         self.editing = False
 
     def get(self):
-        """
-        Get the value of this Item as a string
-        """
         return self.entryVal.get()
 
     def reflow(self, e=None):
-        """
-        Reflow the label when this widget is reconfigured
-        """
+        # Reflow the label when this widget is reconfigured
         self.label.configure(wraplength=e.width)
 
     def enter(self, e=None):
-        """
-        Pressing enter inserts an item after this one
-        """
+        # Pressing enter inserts an item after this one
         self.frame.insert(self)
 
     def back(self, e=None):
-        """
-        Pressing backpace at the start of a widget, moves to the previous item
-        """
-
-        # If we're deleting at the left of the entry
+        # Pressing backpace at the start of a widget moves to the previous item
         if self.entry.index(tk.INSERT) == 0:
             self.frame.move(self, -1)
 
@@ -76,26 +65,17 @@ class Item(tk.Frame):
         return c, r, styles, packStyles
 
     def packStyles(self):
-        """
-        Apply pack styles and pack the widget
-        """
-
+        # Pack the widget with appropriate styles
         _, _, _, packStyles = self.assess()
-        
-        if self.editing:
-            self.entry.pack_configure(**packStyles)
-        else:
-            self.label.pack_configure(**packStyles)
+
+        [self.label, self.entry][int(self.editing)].pack_configure(**packStyles)
 
     def style(self):
-        """
-        Apply the relevant styling attributes to the label 
-        """
-
         themes.repurpose(self, self.frame.s.appStyle['Frame'], 'bg')
 
         _, r, styles, _ = self.assess()
 
+        # Extensions have no impact on the entry, so we can style it ourselves
         self.entry.configure(**styles)
         themes.repurpose(self.entry, styles, 'fg', 'insertbackground')
 
@@ -106,30 +86,22 @@ class Item(tk.Frame):
         # Hand off to rendering function
         r.render(self.renderedString, self.label, styles)
 
+        # Pack the appropriate widget
         self.packStyles()
 
     def set(self):
-        """
-        Called to move this Item out of editing mode
-        """
-
         self.editing = False
+        self.entry.pack_forget()
 
         # If we've updated the entry, update the label
         if self.renderedString != self.entryVal.get():
             self.renderedString = self.entryVal.get()
             # Restyle in case the element has changed its type
             self.style()
-
-        # Remove entry box and place label on the screen 
-        self.entry.pack_forget()
-        self.packStyles()
+        else:
+            self.packStyles()
         
     def edit(self, e=None):
-        """
-        Called to move this Item into editing mode.
-        """
-
         self.editing = True
         self.label.pack_forget()
 
