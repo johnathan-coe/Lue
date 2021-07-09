@@ -70,7 +70,6 @@ class Item(tk.Frame):
 
         if self.editing:
             self.entry.pack_configure(fill=tk.X, **packStyles)
-            self.entry.focus_set()
         else:
             self.label.pack_configure(**packStyles)
 
@@ -109,3 +108,4 @@ class Item(tk.Frame):
         self.editing = True
         self.label.pack_forget()
         self.style()
+        self.entry.focus_set()
