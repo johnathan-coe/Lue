@@ -4,11 +4,5 @@ def strip(text):
 
     return text
 
-class PlainText:
-    @staticmethod
-    def render(string, label, style):            
-        label.configure(text=strip(string), **style)
-
-    @staticmethod
-    def export(string, style):
-        return strip(string)
+def render(string, style):
+    return strip(string)
