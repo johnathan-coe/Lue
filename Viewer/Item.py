@@ -67,18 +67,25 @@ class Item(tk.Frame):
     def style(self):
         themes.repurpose(self, self.frame.s.appStyle['Frame'], 'bg')
 
-        _, r, styles, _ = self.assess()
+        _, render, styles, _ = self.assess()
 
         # Extensions have no impact on the entry, so we can style it ourselves
         self.entry.configure(**styles)
         themes.repurpose(self.entry, styles, 'fg', 'insertbackground')
 
-        # Wipe any existing content
-        self.label.image = None
-        self.label.configure(image='', text='')
-
         # Hand off to rendering function
-        r.render(self.renderedString, self.label, styles)
+        rendered = render(self.renderedString, styles)
+
+        # Apply rendered content to label
+        text = ''
+        self.label.image = ''
+        
+        if type(rendered) == str:
+            text = rendered
+        else:
+            self.label.image = rendered
+        
+        self.label.configure(image=self.label.image, text=text)
 
         # Pack the appropriate widget
         self.packWidget()
