@@ -1,6 +1,7 @@
 import tkinter as tk
 import extensions
 import themes
+from PIL import ImageTk
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
@@ -83,7 +84,7 @@ class Item(tk.Frame):
         if type(rendered) == str:
             text = rendered
         else:
-            self.label.image = rendered
+            self.label.image = ImageTk.PhotoImage(rendered)
         
         self.label.configure(image=self.label.image, text=text, **styles)
 
