@@ -85,7 +85,7 @@ class Item(tk.Frame):
         else:
             self.label.image = rendered
         
-        self.label.configure(image=self.label.image, text=text)
+        self.label.configure(image=self.label.image, text=text, **styles)
 
         # Pack the appropriate widget
         self.packWidget()
