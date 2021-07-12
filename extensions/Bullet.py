@@ -7,13 +7,7 @@ PREFIX = "-"
 # Called when a line starts with PREFIX
 # Return the styling class, Body string and rendering routine
 def lex(string):
-    return "li", Bullet
+    return "li", render
 
-class Bullet:
-    @staticmethod
-    def render(string, label, style):
-        label.configure(text="• " + string[1:].strip(), **style)
-
-    @staticmethod
-    def export(string, style):
-        return string[1:].strip()
+def render(string, style):
+    return "• " + string[1:].strip()
