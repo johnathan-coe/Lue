@@ -5,23 +5,15 @@ from PIL import ImageTk
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
-    def __init__(self, frame, line=""):
-        super().__init__(frame)
-        self.frame = frame
+    def __init__(self, parent, style, line):
+        super().__init__(parent)
+        self.s = style
 
         self.label = tk.Label(self, wraplength=0)
         self.entryVal = tk.StringVar(self, line)
         self.entry = tk.Entry(self, textvariable=self.entryVal)
 
         self.bind('<Configure>', self.reflow)
-
-        move = lambda d: lambda e: self.frame.move(self, d)
-
-        # Keyboard bindings
-        self.entry.bind('<BackSpace>', self.back)
-        self.entry.bind('<Return>', self.enter)
-        self.entry.bind('<Down>', move(+1))
-        self.entry.bind('<Up>', move(-1))
 
         # The string that the label is displaying
         self.renderedString = None
@@ -37,22 +29,13 @@ class Item(tk.Frame):
         # Reflow the label when this widget is reconfigured
         self.label.configure(wraplength=e.width)
 
-    def enter(self, e=None):
-        # Pressing enter inserts an item after this one
-        self.frame.insert(self)
-
-    def back(self, e=None):
-        # Pressing backpace at the start of a widget moves to the previous item
-        if self.entry.index(tk.INSERT) == 0:
-            self.frame.move(self, -1)
-
     def assess(self):
         # Get info from string
         c, r = extensions.classify(self.renderedString)
 
         # Get styles
-        styles = self.frame.s.styles[c]
-        packStyles = self.frame.s.packStyles[c]
+        styles = self.s.styles[c]
+        packStyles = self.s.packStyles[c]
         
         return c, r, styles, packStyles
 
@@ -69,7 +52,7 @@ class Item(tk.Frame):
         """
         Update label styling and content, given the content of the entry.
         """
-        themes.repurpose(self, self.frame.s.appStyle['Frame'], 'bg')
+        themes.repurpose(self, self.s.appStyle['Frame'], 'bg')
 
         _, render, styles, _ = self.assess()
 

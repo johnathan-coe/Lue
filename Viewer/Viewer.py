@@ -1,4 +1,4 @@
-from Viewer.Item import Item
+from Viewer.ViewerItem import ViewerItem
 from Viewer.VertFrame import VerticalScrolledFrame
 import themes
 import tkinter as tk
@@ -22,7 +22,7 @@ class Viewer(VerticalScrolledFrame):
         Add an item to the top of the viewer and return it
         """
 
-        i = Item(self, line.rstrip())
+        i = ViewerItem(self, line.rstrip())
         self.items.append(i)
         i.pack(fill=tk.X)
         return i
@@ -42,7 +42,7 @@ class Viewer(VerticalScrolledFrame):
             item.pack_forget()
 
         # Add the item to the array
-        i = Item(self)
+        i = ViewerItem(self)
         self.items.insert(index, i)
 
         # Repack
@@ -86,7 +86,8 @@ class Viewer(VerticalScrolledFrame):
         themes.repurpose(self.inner, self.s.appStyle['Frame'], 'bg')
 
         for i in self.items:
-            i.style()
+            i.s = self.s
+            i.updateLabel()
 
     def remove(self, item):
         """
