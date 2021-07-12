@@ -24,7 +24,7 @@ class Item(tk.Frame):
         self.entry.bind('<Up>', move(-1))
 
         # The string that the label is displaying
-        self.renderedString = ''
+        self.renderedString = None
 
         # Set this Item
         self.set()
@@ -88,9 +88,6 @@ class Item(tk.Frame):
         
         self.label.configure(image=self.label.image, text=text, **styles)
 
-        # Pack the appropriate widget
-        self.packWidget()
-
     def set(self):
         self.editing = False
         self.entry.pack_forget()
@@ -100,11 +97,11 @@ class Item(tk.Frame):
             self.renderedString = self.entryVal.get()
             # Restyle
             self.style()
-        else:
-            self.packWidget()
+
+        self.packWidget()
         
     def edit(self, e=None):
         self.editing = True
         self.label.pack_forget()
-        self.style()
+        self.packWidget()
         self.entry.focus_set()
