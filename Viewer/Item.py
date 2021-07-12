@@ -65,7 +65,10 @@ class Item(tk.Frame):
         else:
             self.label.pack_configure(**packStyles)
 
-    def style(self):
+    def updateLabel(self):
+        """
+        Update label styling and content, given the content of the entry.
+        """
         themes.repurpose(self, self.frame.s.appStyle['Frame'], 'bg')
 
         _, render, styles, _ = self.assess()
@@ -96,7 +99,7 @@ class Item(tk.Frame):
         if self.renderedString != self.entryVal.get():
             self.renderedString = self.entryVal.get()
             # Restyle
-            self.style()
+            self.updateLabel()
 
         self.packWidget()
         
