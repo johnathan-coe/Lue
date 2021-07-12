@@ -88,6 +88,7 @@ class Viewer(VerticalScrolledFrame):
         for i in self.items:
             i.s = self.s
             i.updateLabel()
+            i.packWidget()
 
     def remove(self, item):
         """
