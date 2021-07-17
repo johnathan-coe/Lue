@@ -1,5 +1,6 @@
 import extensions
 from . import CSS
+import os
 
 NAME = 'HTML'
 
@@ -26,7 +27,7 @@ def export(app):
         style[tag] = styles
         packs[tag] = packStyles
 
-        output = r(i.get(), styles)
+        output = r(i.get(), styles, app.cwd)
 
         if type(output) == str:
             out += f"<{tag}>"
@@ -42,8 +43,13 @@ def export(app):
 
     out += f"</body>\n</html>"
 
-    with open("rendered/index.html", "w") as f:
+    renderFolder = os.path.join(app.cwd, 'rendered')
+
+    if not os.path.exists(renderFolder):
+        os.makedirs(renderFolder)
+
+    with open(os.path.join(renderFolder, "index.html"), "w") as f:
         f.write(out)
 
-    with open("rendered/index.css", "w") as f:
+    with open(os.path.join(renderFolder, "index.css"), "w") as f:
         f.write(CSS.generateCSS(style, packs, app.s))
