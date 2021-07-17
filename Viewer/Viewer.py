@@ -54,13 +54,13 @@ class Viewer(VerticalScrolledFrame):
 
     def loadFromFile(self, fileName):
         """
-        Load a file into the viewer, given a filename
+        Load a file into the viewer, given an absolute filename
         """
         
         self.clear()
 
-        baseDir = os.path.dirname(fileName)
-        if baseDir: os.chdir(baseDir)
+        # Ensure extensions have access to the directory that the lue file is in
+        os.chdir(os.path.dirname(fileName))
         
         with open(fileName, 'r') as f:
             for line in f.readlines():
