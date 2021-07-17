@@ -29,4 +29,7 @@ def getImage(math, bg, fg):
 def render(string, style):
     # Remove the $
     math = string[1:].strip()
-    return getImage(math, style.get('bg', ''), style.get('fg', ''))
+    try:
+        return getImage(math, style.get('bg', ''), style.get('fg', ''))
+    except RuntimeError:
+        return "TeXMath Rendering Error!"
