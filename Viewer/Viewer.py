@@ -59,7 +59,9 @@ class Viewer(VerticalScrolledFrame):
         
         self.clear()
 
-        os.chdir(os.path.dirname(fileName))
+        baseDir = os.path.dirname(fileName)
+        if baseDir: os.chdir(baseDir)
+        
         with open(fileName, 'r') as f:
             for line in f.readlines():
                 if not line.rstrip(): continue

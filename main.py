@@ -6,6 +6,8 @@ import extensions
 from exporters import HTML
 from Viewer.Viewer import Viewer
 from tkinter import filedialog
+import os
+import sys
 
 FILETYPES = (
     ("Lue Files", "*.lue"),
@@ -16,11 +18,15 @@ FILETYPES = (
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.filename = config.WELCOME
+        self.filename = config.WELCOME if len(sys.argv) < 2 else sys.argv[1]
 
         self.itemFrame = Viewer(self)
         self.itemFrame.style(themes.Theme(config.THEME))
-        self.itemFrame.loadFromFile(self.filename)
+        
+        if os.path.exists(self.filename):
+            self.itemFrame.loadFromFile(self.filename)
+        else:
+            self.itemFrame.append("").edit()
         
         self.itemFrame.pack(fill=tk.BOTH, expand=True)
         
