@@ -5,8 +5,8 @@ from .Item import Item
 from tkinter import INSERT
 
 class ViewerItem(Item):
-    def __init__(self, frame, line=""):
-        super().__init__(frame, frame.s, line)
+    def __init__(self, frame, line):
+        super().__init__(frame, line)
         self.frame = frame
 
         move = lambda d: lambda e: self.frame.move(self, d)

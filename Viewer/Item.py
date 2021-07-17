@@ -5,9 +5,10 @@ from PIL import ImageTk
 
 # Each item is either a frame or entry depending on state
 class Item(tk.Frame):
-    def __init__(self, parent, style, line):
+    def __init__(self, parent, line):
         super().__init__(parent)
-        self.s = style
+        self.s = parent.s
+        self.cwd = parent.cwd
 
         self.label = tk.Label(self, wraplength=0)
         self.entryVal = tk.StringVar(self, line)
@@ -61,7 +62,7 @@ class Item(tk.Frame):
         themes.repurpose(self.entry, styles, 'fg', 'insertbackground')
 
         # Hand off to rendering function
-        rendered = render(self.renderedString, styles)
+        rendered = render(self.renderedString, styles, self.cwd)
 
         # Apply rendered content to label
         text = ''

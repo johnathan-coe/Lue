@@ -9,6 +9,7 @@ class Viewer(VerticalScrolledFrame):
         super().__init__(parent)
         self.items = []
         self.s = None
+        self.cwd = os.getcwd()
         
     def clear(self):
         """
@@ -43,7 +44,7 @@ class Viewer(VerticalScrolledFrame):
             item.pack_forget()
 
         # Add the item to the array
-        i = ViewerItem(self)
+        i = ViewerItem(self, "")
         self.items.insert(index, i)
 
         # Repack
@@ -52,15 +53,19 @@ class Viewer(VerticalScrolledFrame):
 
         self.move(priorItem, +1)
 
+    def updateCwd(self, d):
+        self.cwd = d
+        for i in self.items:
+            i.cwd = d
+            i.updateLabel()
+
     def loadFromFile(self, fileName):
         """
         Load a file into the viewer, given an absolute filename
         """
         
         self.clear()
-
-        # Ensure extensions have access to the directory that the lue file is in
-        os.chdir(os.path.dirname(fileName))
+        self.updateCwd(os.path.dirname(fileName))
         
         with open(fileName, 'r') as f:
             for line in f.readlines():
@@ -71,6 +76,7 @@ class Viewer(VerticalScrolledFrame):
         """
         Save the content of the viewer to a file, given a filename
         """
+        self.updateCwd(os.path.dirname(fileName))
 
         with open(fileName, 'w') as f:
             f.writelines('\n'.join([l.entryVal.get() for l in self.items if l.entryVal.get()]))
