@@ -24,7 +24,7 @@ def tkFontToCSS(v):
         print('WARNING: Unsupported tkinter font specification!', v)
 
 def styleDictToCSS(d):
-    m = {'bg': 'background', 'fg': 'color'}
+    m = {'bg': 'background', 'fg': 'color', 'justify': 'text-align'}
 
     out = ''
     for k, v in d.items():
