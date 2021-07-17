@@ -1,4 +1,5 @@
 from PIL import ImageTk, Image
+import os
 
 PREFIX = "^"
 
@@ -7,9 +8,9 @@ PREFIX = "^"
 def lex(string):
     return "img", render
 
-def render(string, styles):
+def render(string, styles, cwd):
     filename = string[1:]
     try:
-        return Image.open(filename)
+        return Image.open(os.path.join(cwd, filename))
     except FileNotFoundError:
         return f"Image '{filename}' not found!"

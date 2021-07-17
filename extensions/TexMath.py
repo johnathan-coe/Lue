@@ -26,7 +26,7 @@ def getImage(math, bg, fg):
 
     return Image.open(out)
 
-def render(string, style):
+def render(string, style, cwd):
     # Remove the $
     math = string[1:].strip()
     try:

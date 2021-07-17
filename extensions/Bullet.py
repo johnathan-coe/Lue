@@ -9,5 +9,5 @@ PREFIX = "-"
 def lex(string):
     return "li", render
 
-def render(string, style):
+def render(string, style, cwd):
     return "• " + string[1:].strip()

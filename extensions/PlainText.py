@@ -4,5 +4,5 @@ def strip(text):
 
     return text
 
-def render(string, style):
+def render(string, style, cwd):
     return strip(string)
