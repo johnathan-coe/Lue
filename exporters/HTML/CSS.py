@@ -45,12 +45,8 @@ def packStyleDictToCSS(d):
 
     return out
 
-def generateCSS(style, packs, theme):
+def generateCSS(style, packs):
     out = ''
-    
-    out += 'body {\n'
-    out += styleDictToCSS(theme.appStyle['Frame'])
-    out += '}\n'
 
     for tag in style:
         out += tag + ' {\n'
