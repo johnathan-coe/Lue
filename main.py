@@ -18,7 +18,11 @@ FILETYPES = (
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.filename = config.WELCOME if len(sys.argv) < 2 else sys.argv[1]
+
+        if len(sys.argv) < 2:
+            self.filename = config.WELCOME
+        else:
+            self.filename = os.path.realpath(sys.argv[1])
 
         self.itemFrame = Viewer(self)
         self.itemFrame.style(themes.Theme(config.THEME))
@@ -28,6 +32,10 @@ class App(tk.Tk):
         else:
             self.itemFrame.append("").edit()
         
+        # If we're opening the welcome page on init, don't edit
+        if self.filename != config.WELCOME:
+            self.itemFrame.items[0].edit()
+
         self.itemFrame.pack(fill=tk.BOTH, expand=True)
         
         self.attachMenuBar()
