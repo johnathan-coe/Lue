@@ -2,6 +2,7 @@ from Viewer.ViewerItem import ViewerItem
 from Viewer.VertFrame import VerticalScrolledFrame
 import themes
 import tkinter as tk
+import os
 
 class Viewer(VerticalScrolledFrame):
     def __init__(self, parent):
@@ -58,6 +59,7 @@ class Viewer(VerticalScrolledFrame):
         
         self.clear()
 
+        os.chdir(os.path.dirname(fileName))
         with open(fileName, 'r') as f:
             for line in f.readlines():
                 if not line.rstrip(): continue

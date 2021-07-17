@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import tkinter as tk
 import config
 import themes
@@ -15,7 +16,7 @@ FILETYPES = (
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.filename = 'welcome.lue'
+        self.filename = config.WELCOME
 
         self.itemFrame = Viewer(self)
         self.itemFrame.style(themes.Theme(config.THEME))
@@ -62,7 +63,7 @@ class App(tk.Tk):
 
         # Build a menu for available themes
         themeMenu = tk.Menu(menu, tearoff=0)
-        for theme in config.THEMES:
+        for theme in config.THEMEDIRS:
             themeMenu.add_command(label=theme.split('/')[-1],
                 command=lambda t=theme: self.itemFrame.style(themes.Theme(t)))
         menu.add_cascade(label="Theme", menu=themeMenu)
