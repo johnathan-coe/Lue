@@ -57,24 +57,20 @@ class App(tk.Tk):
             self.itemFrame.items[0].edit()
             self.filename = filename
 
-    def updateSaveStatus(self, info):
-        self.menu.delete(tk.END)
-        self.menu.add_command(label=info)
-
     def save(self, e=None):
         if self.filename:
-            self.updateSaveStatus('Saving...')
+            self.menu.updateStatus('Saving...')
             self.itemFrame.saveToFile(self.filename)
-            self.updateSaveStatus(f'Saved at {datetime.now().time()}')
+            self.menu.updateStatus(f'Saved at {datetime.now().time()}')
         else:
             self.saveas()
 
     def saveas(self):
         if filename := filedialog.asksaveasfilename(filetypes=FILETYPES):
-            self.updateSaveStatus('Saving...')
+            self.menu.updateStatus('Saving...')
             self.itemFrame.saveToFile(filename)
             self.filename = filename
-            self.updateSaveStatus(f'Saved at {datetime.now().time()}')
+            self.menu.updateStatus(f'Saved at {datetime.now().time()}')
             
 if __name__ == "__main__":
     App()

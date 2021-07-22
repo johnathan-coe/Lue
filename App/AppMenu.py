@@ -29,3 +29,8 @@ class AppMenu(tk.Menu):
 
         self.add_separator()
         self.add_command(label="Unsaved since load!")
+    
+    def updateStatus(self, info):
+        # Update the content of the status indicator
+        self.delete(tk.END)
+        self.add_command(label=info)
