@@ -41,6 +41,9 @@ class App(tk.Tk):
         
         self.menu = None
         self.attachMenuBar()
+        
+        self.bind('<Control-Key-s>', self.save)
+        
         self.mainloop()
 
     def new(self):
@@ -58,7 +61,7 @@ class App(tk.Tk):
         self.menu.delete(tk.END)
         self.menu.add_command(label=info)
 
-    def save(self):
+    def save(self, e=None):
         if self.filename:
             self.updateSaveStatus('Saving...')
             self.itemFrame.saveToFile(self.filename)
