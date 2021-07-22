@@ -4,7 +4,7 @@ import config
 
 class AppMenu(tk.Menu):
     def __init__(self, app):
-        super().__init__()
+        super().__init__(app)
         app.config(menu=self)
 
         # Build the file menu
