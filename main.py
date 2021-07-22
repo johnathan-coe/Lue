@@ -8,6 +8,7 @@ from Viewer.Viewer import Viewer
 from tkinter import filedialog
 import os
 import sys
+from App.AppMenu import AppMenu
 from datetime import datetime
 
 FILETYPES = (
@@ -39,9 +40,8 @@ class App(tk.Tk):
 
         self.itemFrame.pack(fill=tk.BOTH, expand=True)
         
-        self.menu = None
-        self.attachMenuBar()
-        
+        self.menu = AppMenu(self)
+
         self.bind('<Control-Key-s>', self.save)
         
         self.mainloop()
@@ -75,34 +75,6 @@ class App(tk.Tk):
             self.itemFrame.saveToFile(filename)
             self.filename = filename
             self.updateSaveStatus(f'Saved at {datetime.now().time()}')
-
-    def attachMenuBar(self):
-        # Define a menu
-        self.menu = tk.Menu(self)
-        self.config(menu=self.menu)
-        
-        # Build the file menu
-        fileMenu = tk.Menu(self.menu, tearoff=0)
-        fileCmds = {"New": self.new, "Open": self.open, "Save": self.save, "Save As": self.saveas}
-        [fileMenu.add_command(label=label, command=command) for label, command in fileCmds.items()]
-        # Add it to the top bar
-        self.menu.add_cascade(label="File", menu=fileMenu)
-
-        # Build a menu for available themes
-        themeMenu = tk.Menu(self.menu, tearoff=0)
-        for theme in config.THEMEDIRS:
-            themeMenu.add_command(label=theme.split('/')[-1],
-                command=lambda t=theme: self.itemFrame.style(themes.Theme(t)))
-        self.menu.add_cascade(label="Theme", menu=themeMenu)
-
-        # Build a menu for available exporters 
-        exportMenu = tk.Menu(self.menu, tearoff=0)
-        for exporter in config.EXPORTERS:
-            exportMenu.add_command(label=exporter.NAME, command=lambda x=exporter: x.export(self.itemFrame))
-        self.menu.add_cascade(label="Export", menu=exportMenu)
-
-        self.menu.add_separator()
-        self.menu.add_command(label="Unsaved since load!")
             
 if __name__ == "__main__":
     App()
