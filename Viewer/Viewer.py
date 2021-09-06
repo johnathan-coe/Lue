@@ -10,6 +10,7 @@ class Viewer(VerticalScrolledFrame):
         self.items = []
         self.s = None
         self.cwd = os.getcwd()
+        self.unsaved = False
         
     def clear(self):
         """
@@ -82,6 +83,8 @@ class Viewer(VerticalScrolledFrame):
             f.writelines('\n'.join([l.entryVal.get() for l in self.items if l.entryVal.get()]))
             f.write('\n')
         
+        self.unsaved = False
+
     def style(self, theme):
         """
         Apply a theme to the viewer and its content
@@ -138,3 +141,5 @@ class Viewer(VerticalScrolledFrame):
             return
         else:
             self.insert(item)
+
+        self.unsaved = True

@@ -6,6 +6,7 @@ import extensions
 from exporters import HTML
 from Viewer.Viewer import Viewer
 from tkinter import filedialog
+from tkinter import messagebox
 import os
 import sys
 from App.AppMenu import AppMenu
@@ -46,24 +47,41 @@ class App(tk.Tk):
         
         self.mainloop()
 
+    def detectUnsavedChanges(self):
+        """
+        Detect unsaved changes, returning whether it is safe to continue
+        """
+        if self.itemFrame.unsaved and messagebox.askyesno("Unsaved Changes!", "Save changes?"):
+            return self.save()
+
+        return True
+
     def new(self):
-        self.filename = None
-        self.itemFrame.clear()
-        self.itemFrame.append("").edit()
+        if self.detectUnsavedChanges():
+            self.filename = None
+            self.itemFrame.clear()
+            self.itemFrame.append("").edit()
 
     def open(self):
-        if filename := filedialog.askopenfilename(filetypes=FILETYPES):
+        if self.detectUnsavedChanges() and (filename := filedialog.askopenfilename(filetypes=FILETYPES)):
             self.itemFrame.loadFromFile(filename)
             self.itemFrame.items[0].edit()
             self.filename = filename
 
     def save(self, e=None):
+        """
+        Save the current viewer to disk, returning success
+        """
+        
         if self.filename:
             self.menu.updateStatus('Saving...')
             self.itemFrame.saveToFile(self.filename)
             self.menu.updateStatus(f'Saved at {datetime.now().time()}')
+            return True
         else:
-            self.saveas()
+            return self.saveas()
+
+        return False
 
     def saveas(self):
         if filename := filedialog.asksaveasfilename(filetypes=FILETYPES):
@@ -71,6 +89,9 @@ class App(tk.Tk):
             self.itemFrame.saveToFile(filename)
             self.filename = filename
             self.menu.updateStatus(f'Saved at {datetime.now().time()}')
+            return True
+
+        return False
             
 if __name__ == "__main__":
     App()
