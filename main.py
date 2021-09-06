@@ -44,7 +44,8 @@ class App(tk.Tk):
         self.menu = AppMenu(self)
 
         self.bind('<Control-Key-s>', self.save)
-        
+
+        self.protocol("WM_DELETE_WINDOW", lambda: self.detectUnsavedChanges() and self.destroy())
         self.mainloop()
 
     def detectUnsavedChanges(self):
