@@ -111,6 +111,18 @@ class Viewer(VerticalScrolledFrame):
         self.items.remove(item)
         item.pack_forget()
 
+    def setItem(self, item):
+        """
+        Sets an item, removing if necessary
+        """
+        
+        if not item.entryVal.get():
+            self.items.remove(item)
+            item.pack_forget()
+
+        item.set()
+
+
     def move(self, item, direction):
         """
         Attempt a move in a particular direction, given an element.
@@ -127,12 +139,7 @@ class Viewer(VerticalScrolledFrame):
         elif to < len(self.items):
             # Move to an existing item
             self.items[to].edit()
-
-            if not item.entryVal.get():
-                self.items.remove(item)
-                item.pack_forget()
-
-            item.set()
+            self.setItem(item)
             self.update_idletasks()
             self.scroll_to(self.items[to])
 

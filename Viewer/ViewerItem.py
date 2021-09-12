@@ -17,6 +17,19 @@ class ViewerItem(Item):
         self.entry.bind('<Down>', move(+1))
         self.entry.bind('<Up>', move(-1))
 
+        # Move to this item on click
+        self.label.bind('<Button-1>', self.moveTo)
+
+    def moveTo(self, e):
+        # Set all items
+        [self.frame.setItem(i) for i in self.frame.items]
+        
+        # Edit this one
+        self.edit()
+
+        # Notify unsaved changes
+        self.frame.unsaved = True
+
     def enter(self, e=None):
         # Pressing enter inserts an item after this one
         self.frame.insert(self)
