@@ -127,7 +127,7 @@ sealed class DocumentRow
         if (!_editor.Visible || width < 40)
             return;
 
-        _editor.WidthRequest = width
+        _editor.WidthRequest = width;
         _editor.Measure(Orientation.Vertical, width, out var minimum, out var natural, out _, out _);
         _editor.HeightRequest = Math.Max(minimum, natural);
     }
