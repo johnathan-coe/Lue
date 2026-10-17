@@ -10,8 +10,6 @@ sealed class MainWindow
     readonly EditSession _session;
     readonly DocumentView _view;
     readonly Label _status;
-    Theme _theme;
-    CssProvider? _css;
     bool _prompting;
     bool _allowClose;
 
@@ -21,19 +19,13 @@ sealed class MainWindow
         _session = new EditSession();
         _session.Dirtied += () => SetStatus("Unsaved changes");
 
-        IReadOnlyCollection<string>? fonts = null;
-        try { fonts = FontFamilies.Load(); }
-        catch (Exception ex) { Console.Error.WriteLine("Fonts: " + ex.Message); }
-
-        _theme = Theme.Load(AppPaths.DefaultTheme, fonts);
         StartupDocument.OpenInitial(_session, argument, AppPaths.Welcome);
-        _view = new DocumentView(_session, _theme);
+        _view = new DocumentView(_session);
 
         _window = ApplicationWindow.New(application);
         _window.Application = application;
         _window.Title = "Lue";
         _window.SetDefaultSize(860, 720);
-        _window.AddCssClass("lue-window");
         _window.OnCloseRequest += (_, _) => OnClose();
 
         var root = Box.New(Orientation.Vertical, 0);
@@ -44,18 +36,16 @@ sealed class MainWindow
         root.Append(separator);
 
         _status = Label.New("Unsaved since load!");
-        _status.AddCssClass("lue-status");
+        _status.AddCssClass("dim-label");
         _status.Halign = Align.Fill;
         _status.Xalign = 0;
+        _status.MarginTop = 6;
+        _status.MarginBottom = 6;
+        _status.MarginStart = 12;
+        _status.MarginEnd = 12;
         root.Append(_status);
 
         _window.Child = root;
-        _window.OnRealize += (_, _) =>
-        {
-            if (_css is null)
-                ApplyCss(ThemeCss.Build(_theme));
-        };
-        ApplyCss(ThemeCss.Build(_theme));
         UpdateTitle();
         InstallActions();
     }
@@ -70,19 +60,11 @@ sealed class MainWindow
         file.Append("Save", "app.save");
         file.Append("Save As", "app.save-as");
 
-        var themes = Gio.Menu.New();
-        foreach (var directory in AppPaths.ThemeDirectories())
-        {
-            var name = Path.GetFileName(directory);
-            themes.Append(name, "app.theme-" + name);
-        }
-
         var export = Gio.Menu.New();
         export.Append(HtmlExporter.Name, "app.export-html");
 
         var bar = Gio.Menu.New();
         bar.AppendSubmenu("File", file);
-        bar.AppendSubmenu("Theme", themes);
         bar.AppendSubmenu("Export", export);
         return PopoverMenuBar.NewFromModel(bar);
     }
@@ -95,12 +77,6 @@ sealed class MainWindow
         Add("save-as", () => _ = SaveAsAsync(), "<Primary><Shift>s");
         Add("quit", () => _window.Close(), "<Primary>q");
         Add("export-html", ExportHtml, null);
-        foreach (var directory in AppPaths.ThemeDirectories())
-        {
-            var captured = directory;
-            var name = Path.GetFileName(captured);
-            Add("theme-" + name, () => SwitchTheme(captured), null);
-        }
     }
 
     void Add(string name, Action callback, string? accelerator)
@@ -278,7 +254,8 @@ sealed class MainWindow
         try
         {
             _view.Flush();
-            var path = HtmlExporter.Write(_session, _theme, _view.EncodeImage);
+            var theme = Theme.Load(AppPaths.DefaultTheme);
+            var path = HtmlExporter.Write(_session, theme, _view.EncodeImage);
             SetStatus("Exported HTML to " + path);
         }
         catch (Exception ex)
@@ -286,42 +263,6 @@ sealed class MainWindow
             Console.Error.WriteLine(ex);
             _ = ErrorAsync("Could not export", ex.Message);
         }
-    }
-
-    void SwitchTheme(string directory)
-    {
-        try
-        {
-            IReadOnlyCollection<string>? fonts = null;
-            try { fonts = FontFamilies.Load(); }
-            catch (Exception) { }
-
-            var next = Theme.Load(directory, fonts);
-            ThemeValidator.ValidateSwitch(_theme, next);
-            _theme = next;
-            ApplyCss(ThemeCss.Build(next));
-            _view.SetTheme(next);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-            _ = ErrorAsync("Could not apply theme", ex.Message);
-        }
-    }
-
-    void ApplyCss(string css)
-    {
-        var display = Gdk.Display.GetDefault();
-        if (display is null)
-            return;
-
-        if (_css is not null)
-            StyleContext.RemoveProviderForDisplay(display, _css);
-
-        _css = CssProvider.New();
-        _css.OnParsingError += (_, args) => Console.Error.WriteLine("CSS: " + args.Error);
-        _css.LoadFromString(css);
-        StyleContext.AddProviderForDisplay(display, _css, Constants.STYLE_PROVIDER_PRIORITY_APPLICATION);
     }
 
     async Task ErrorAsync(string message, string detail)

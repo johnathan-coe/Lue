@@ -36,18 +36,23 @@ public static class LineRenderer
         return text;
     }
 
-    public static RenderedContent Render(string line, Theme theme, string workingDirectory)
+    public static RenderedContent Render(string line, string workingDirectory, string texBackground = "", string texForeground = "")
     {
         var kind = KindOf(line);
-        var style = ElementStyle.For(theme, kind);
         return kind switch
         {
             Heading1 or Heading2 or Heading3 or Body => RenderedContent.FromText(StripMarkers(line)),
             Bullet => RenderedContent.FromText("• " + (line.Length > 0 ? line[1..].Trim() : "")),
             Image => RenderImage(line, workingDirectory),
-            Tex => RenderTex(line, style),
+            Tex => RenderTex(line, texBackground, texForeground),
             _ => RenderedContent.FromText(StripMarkers(line))
         };
+    }
+
+    public static RenderedContent Render(string line, Theme theme, string workingDirectory)
+    {
+        var style = ElementStyle.For(theme, KindOf(line));
+        return Render(line, workingDirectory, style.Background, style.Foreground);
     }
 
     static RenderedContent RenderImage(string line, string workingDirectory)
@@ -59,12 +64,12 @@ public static class LineRenderer
         return RenderedContent.FromImagePath(path);
     }
 
-    static RenderedContent RenderTex(string line, ElementStyle style)
+    static RenderedContent RenderTex(string line, string background, string foreground)
     {
         var math = line.Length > 0 ? line[1..].Trim() : "";
         try
         {
-            return RenderedContent.FromPng(TexRenderer.Render(math, style.Background, style.Foreground));
+            return RenderedContent.FromPng(TexRenderer.Render(math, background, foreground));
         }
         catch (Exception ex)
         {
