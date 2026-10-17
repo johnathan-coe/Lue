@@ -12,7 +12,7 @@ Lue edits a line-oriented document. A line renders as a heading, body text, bull
 | `$formula` | TeX math, when a LaTeX install is available |
 | anything else | Body text |
 
-The window uses the desktop GTK theme. There is no theme menu and no application stylesheet: headings use GTK’s `title-1`, `title-2`, and `title-3` styles, and the rest of the text uses the theme’s body style. File and Export behave like the Tkinter app. Export writes `rendered/index.html` and `rendered/index.css` beside the document, using the shared `themes/ms` stylesheet so the HTML matches the Python app’s default theme. Ctrl+S saves, Ctrl+N starts a new document, Ctrl+O opens, and Ctrl+Shift+S is Save As. Closing with unsaved edits asks whether to save.
+The window uses GTK’s dark theme and the Inter typeface. There is no theme menu and no custom color stylesheet: headings use GTK’s `title-1`, `title-2`, and `title-3` styles, and the rest of the text uses the theme’s body style. Inter is bundled with the app under the SIL Open Font License so Linux and Windows share the same face. File and Export behave like the Tkinter app. Export writes `rendered/index.html` and `rendered/index.css` beside the document, using the shared `themes/ms` stylesheet so the HTML matches the Python app’s default theme. Ctrl+S saves, Ctrl+N starts a new document, Ctrl+O opens, and Ctrl+Shift+S is Save As. Closing with unsaved edits asks whether to save.
 
 ## Linux
 
