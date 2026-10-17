@@ -26,14 +26,20 @@ public static class AppPaths
     {
         foreach (var start in new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() })
         {
+            // Prefer the outermost match so a copied welcome file in the build
+            // output does not hide the repository that contains it.
+            string? found = null;
             var dir = new DirectoryInfo(start);
             while (dir is not null)
             {
                 if (File.Exists(Path.Combine(dir.FullName, "themes", "ms", "application.ini")) &&
                     File.Exists(Path.Combine(dir.FullName, "welcome.lue")))
-                    return dir.FullName;
+                    found = dir.FullName;
                 dir = dir.Parent;
             }
+
+            if (found is not null)
+                return found;
         }
 
         return AppContext.BaseDirectory;

@@ -9,9 +9,13 @@ sealed class MainWindow
     readonly ApplicationWindow _window;
     readonly EditSession _session;
     readonly DocumentView _view;
+    readonly FolderSidebar _sidebar;
+    readonly Revealer _sidebarPane;
+    readonly ToggleButton _sidebarToggle;
     readonly Label _status;
     bool _prompting;
     bool _allowClose;
+    bool _sidebarOpen = true;
 
     public MainWindow(Application application, string? argument)
     {
@@ -25,12 +29,47 @@ sealed class MainWindow
         _window = ApplicationWindow.New(application);
         _window.Application = application;
         _window.Title = "Lue";
-        _window.SetDefaultSize(860, 720);
+        _window.SetDefaultSize(1080, 720);
         _window.OnCloseRequest += (_, _) => OnClose();
 
+        _sidebar = new FolderSidebar(_session.WorkingDirectory);
+        _sidebar.FileChosen += path => _ = OpenFromSidebarAsync(path);
+        _sidebar.Rejected += path =>
+        {
+            SetStatus($"Lue edits text documents, not {Path.GetFileName(path)}");
+            _sidebar.Select(_session.FilePath);
+        };
+        _sidebar.Select(_session.FilePath);
+
+        _sidebarPane = Revealer.New();
+        _sidebarPane.TransitionType = RevealerTransitionType.SlideRight;
+        _sidebarPane.RevealChild = true;
+        _sidebarPane.Child = _sidebar.Root;
+
+        _sidebarToggle = ToggleButton.New();
+        _sidebarToggle.IconName = "sidebar-show-symbolic";
+        _sidebarToggle.Active = true;
+        _sidebarToggle.TooltipText = "Folder sidebar (F9)";
+        _sidebarToggle.AddCssClass("flat");
+        _sidebarToggle.Valign = Align.Center;
+        _sidebarToggle.OnToggled += (_, _) => SetSidebar(_sidebarToggle.Active);
+
+        var menu = BuildMenu();
+        menu.Hexpand = true;
+
+        var menuRow = Box.New(Orientation.Horizontal, 0);
+        menuRow.Append(_sidebarToggle);
+        menuRow.Append(menu);
+
+        var body = Box.New(Orientation.Horizontal, 0);
+        body.Hexpand = true;
+        body.Vexpand = true;
+        body.Append(_sidebarPane);
+        body.Append(_view.Root);
+
         var root = Box.New(Orientation.Vertical, 0);
-        root.Append(BuildMenu());
-        root.Append(_view.Root);
+        root.Append(menuRow);
+        root.Append(body);
 
         var separator = Separator.New(Orientation.Horizontal);
         root.Append(separator);
@@ -60,11 +99,15 @@ sealed class MainWindow
         file.Append("Save", "app.save");
         file.Append("Save As", "app.save-as");
 
+        var view = Gio.Menu.New();
+        view.Append("Folder Sidebar", "app.sidebar");
+
         var export = Gio.Menu.New();
         export.Append(HtmlExporter.Name, "app.export-html");
 
         var bar = Gio.Menu.New();
         bar.AppendSubmenu("File", file);
+        bar.AppendSubmenu("View", view);
         bar.AppendSubmenu("Export", export);
         return PopoverMenuBar.NewFromModel(bar);
     }
@@ -76,6 +119,7 @@ sealed class MainWindow
         Add("save", () => _ = SaveAsync(), "<Primary>s");
         Add("save-as", () => _ = SaveAsAsync(), "<Primary><Shift>s");
         Add("quit", () => _window.Close(), "<Primary>q");
+        Add("sidebar", ToggleSidebar, "F9");
         Add("export-html", ExportHtml, null);
     }
 
@@ -151,6 +195,7 @@ sealed class MainWindow
         _view.Reload();
         UpdateTitle();
         SetStatus("Unsaved since load!");
+        _sidebar.Select(null);
     }
 
     async Task OpenAsync()
@@ -168,14 +213,7 @@ sealed class MainWindow
             var path = file?.GetPath();
             if (string.IsNullOrEmpty(path))
                 return;
-            _session.Load(path);
-            if (_session.Lines.Count == 0)
-                _session.Lines.Add(new Line { Editing = true });
-            else
-                _session.EditFirst();
-            _view.Reload();
-            UpdateTitle();
-            SetStatus("Unsaved since load!");
+            LoadDocument(path);
         }
         catch (GLib.GException ex) when (IsCancel(ex))
         {
@@ -199,6 +237,7 @@ sealed class MainWindow
             SetStatus($"Saved at {DateTime.Now:HH:mm:ss.ffffff}");
             UpdateTitle();
             _view.Reload();
+            SyncSidebar();
             return true;
         }
         catch (Exception ex)
@@ -236,6 +275,7 @@ sealed class MainWindow
             SetStatus($"Saved at {DateTime.Now:HH:mm:ss.ffffff}");
             UpdateTitle();
             _view.Reload();
+            SyncSidebar();
             return true;
         }
         catch (GLib.GException ex) when (IsCancel(ex))
@@ -297,6 +337,60 @@ sealed class MainWindow
         filter.Name = name;
         filter.AddPattern(pattern);
         return filter;
+    }
+
+    async Task OpenFromSidebarAsync(string path)
+    {
+        if (!string.IsNullOrEmpty(_session.FilePath) && AppPaths.SamePath(path, _session.FilePath))
+            return;
+
+        if (!await EnsureSavedAsync())
+        {
+            _sidebar.Select(_session.FilePath);
+            return;
+        }
+
+        try
+        {
+            LoadDocument(path);
+        }
+        catch (Exception ex)
+        {
+            await ErrorAsync("Could not open", ex.Message);
+            _sidebar.Select(_session.FilePath);
+        }
+    }
+
+    void LoadDocument(string path)
+    {
+        _session.Load(path);
+        if (_session.Lines.Count == 0)
+            _session.Lines.Add(new Line { Editing = true });
+        else
+            _session.EditFirst();
+        _view.Reload();
+        UpdateTitle();
+        SetStatus("Unsaved since load!");
+        SyncSidebar();
+    }
+
+    void SyncSidebar()
+    {
+        var directory = string.IsNullOrEmpty(_session.FilePath)
+            ? _session.WorkingDirectory
+            : Path.GetDirectoryName(Path.GetFullPath(_session.FilePath)) ?? _session.WorkingDirectory;
+        _sidebar.ShowDirectory(directory);
+        _sidebar.Select(_session.FilePath);
+    }
+
+    void ToggleSidebar() => SetSidebar(!_sidebarOpen);
+
+    void SetSidebar(bool open)
+    {
+        _sidebarOpen = open;
+        _sidebarPane.RevealChild = open;
+        if (_sidebarToggle.Active != open)
+            _sidebarToggle.Active = open;
     }
 
     void UpdateTitle()
