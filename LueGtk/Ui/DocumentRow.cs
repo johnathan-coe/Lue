@@ -12,6 +12,8 @@ sealed class DocumentRow
     readonly DocumentView _view;
     readonly Label _label;
     readonly Picture _picture;
+    readonly Overlay _imageSlot;
+    readonly Box _imageFrame;
     readonly TextView _editor;
     bool _suppress;
 
@@ -38,9 +40,24 @@ sealed class DocumentRow
 
         _picture = Picture.New();
         _picture.CanShrink = true;
+        _picture.Hexpand = false;
+        _picture.Vexpand = false;
         _picture.ContentFit = ContentFit.ScaleDown;
-        _picture.Halign = Align.Start;
-        _picture.Valign = Align.Start;
+        _picture.Halign = Align.Fill;
+        _picture.Valign = Align.Fill;
+
+        // Picture reports a height from the full column width. The frame's size
+        // request is the real image size, and the picture is only painted on top.
+        _imageFrame = Box.New(Orientation.Horizontal, 0);
+        _imageFrame.Halign = Align.Start;
+        _imageFrame.Valign = Align.Start;
+        _imageSlot = Overlay.New();
+        _imageSlot.Child = _imageFrame;
+        _imageSlot.Hexpand = false;
+        _imageSlot.Vexpand = false;
+        _imageSlot.Halign = Align.Start;
+        _imageSlot.Valign = Align.Start;
+        _imageSlot.AddOverlay(_picture);
 
         _editor = TextView.New();
         _editor.WrapMode = WrapMode.WordChar;
@@ -52,7 +69,7 @@ sealed class DocumentRow
         _editor.BottomMargin = 2;
 
         Root.Append(_label);
-        Root.Append(_picture);
+        Root.Append(_imageSlot);
         Root.Append(_editor);
 
         var click = GestureClick.New();
@@ -79,6 +96,7 @@ sealed class DocumentRow
         {
             _label.Visible = false;
             _picture.Visible = false;
+            _imageSlot.Visible = false;
             _editor.Visible = true;
             if (CurrentText() != Line.Text)
             {
@@ -98,13 +116,17 @@ sealed class DocumentRow
         {
             _label.Visible = false;
             _picture.Visible = true;
+            _imageSlot.Visible = true;
             _picture.Paintable = paintable!;
             _picture.AlternativeText = rendered.Text ?? Path.GetFileName(rendered.ImagePath ?? "image");
-            _picture.Halign = Align.Start;
+            FitPicture(int.MaxValue);
         }
         else
         {
             _picture.Visible = false;
+            _imageSlot.Visible = false;
+            _imageFrame.WidthRequest = -1;
+            _imageFrame.HeightRequest = -1;
             _label.Visible = true;
             _label.Label_ = rendered.Text ?? "";
             _label.Justify = Justification.Left;
@@ -124,12 +146,38 @@ sealed class DocumentRow
     public void Fit(int width)
     {
         width -= Root.MarginStart;
-        if (!_editor.Visible || width < 40)
+        if (width < 40)
+            return;
+
+        if (_picture.Visible)
+        {
+            FitPicture(width);
+            return;
+        }
+
+        if (!_editor.Visible)
             return;
 
         _editor.WidthRequest = width;
         _editor.Measure(Orientation.Vertical, width, out var minimum, out var natural, out _, out _);
         _editor.HeightRequest = Math.Max(minimum, natural);
+    }
+
+    void FitPicture(int width)
+    {
+        var paintable = _picture.Paintable;
+        if (paintable is null || width < 1)
+            return;
+
+        var intrinsicWidth = paintable.GetIntrinsicWidth();
+        var intrinsicHeight = paintable.GetIntrinsicHeight();
+        if (intrinsicWidth <= 0 || intrinsicHeight <= 0)
+            return;
+
+        var displayWidth = Math.Min(width, intrinsicWidth);
+        var displayHeight = Math.Max(1, (int)Math.Round(intrinsicHeight * (displayWidth / (double)intrinsicWidth)));
+        _imageFrame.WidthRequest = displayWidth;
+        _imageFrame.HeightRequest = displayHeight;
     }
 
     public void Flush()
