@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>LueGtk</RootNamespace>
+    <AssemblyName>LueGtk</AssemblyName>
+    <Description>Native GTK 4 port of the Lue document editor.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GirCore.Gtk-4.0" Version="0.8.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="LueGtk.Tests/**" />
+    <None Remove="LueGtk.Tests/**" />
+    <Content Remove="LueGtk.Tests/**" />
+  </ItemGroup>
+
+  <!-- Share the repository themes, welcome document, and logo with the Python app. -->
+  <ItemGroup>
+    <Content Include="..\themes\**\*.ini" Link="themes\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\welcome.lue" Link="welcome.lue" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\logo.png" Link="logo.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
