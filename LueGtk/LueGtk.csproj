@@ -26,6 +26,7 @@
     <Content Include="..\themes\**\*.ini" Link="themes\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\welcome.lue" Link="welcome.lue" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\logo.png" Link="logo.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\logo-icon.png" Link="logo-icon.png" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Fonts\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
