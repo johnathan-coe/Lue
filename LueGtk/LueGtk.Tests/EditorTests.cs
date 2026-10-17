@@ -226,6 +226,25 @@ public class EditSessionTests
     }
 
     [Fact]
+    public void EveryEditRaisesChangedAndUntitledNamesSkipExistingFiles()
+    {
+        var directory = Directory.CreateTempSubdirectory();
+        File.WriteAllText(Path.Combine(directory.FullName, "untitled.lue"), "x\n");
+        Assert.Equal(
+            Path.Combine(directory.FullName, "untitled-2.lue"),
+            DocumentFiles.NextUntitled(directory.FullName));
+
+        var session = new EditSession();
+        var count = 0;
+        session.Changed += () => count++;
+        session.Lines.Add(new Line { Text = "a", Editing = true });
+        session.NoteEdit();
+        session.NoteEdit();
+        Assert.Equal(2, count);
+        Assert.True(session.Unsaved);
+    }
+
+    [Fact]
     public void SidebarKeepsLueFilesAndFoldersThatContainThem()
     {
         var root = Directory.CreateTempSubdirectory();

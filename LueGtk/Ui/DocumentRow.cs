@@ -184,7 +184,11 @@ sealed class DocumentRow
     {
         if (!Line.Editing)
             return;
-        Line.Text = CurrentText();
+        var text = CurrentText();
+        if (text == Line.Text)
+            return;
+        Line.Text = text;
+        _view.Session.NoteEdit();
     }
 
     void OnChanged()
