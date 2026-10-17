@@ -224,6 +224,37 @@ public class EditSessionTests
         Assert.True(missingSession.Lines[0].Editing);
         Assert.Equal("", missingSession.Lines[0].Text);
     }
+
+    [Fact]
+    public void SidebarKeepsLueFilesAndFoldersThatContainThem()
+    {
+        var root = Directory.CreateTempSubdirectory();
+        Directory.CreateDirectory(Path.Combine(root.FullName, "empty"));
+        var code = Path.Combine(root.FullName, "code");
+        Directory.CreateDirectory(code);
+        File.WriteAllText(Path.Combine(code, "main.py"), "print(1)\n");
+        File.WriteAllText(Path.Combine(root.FullName, "readme.md"), "hi\n");
+        File.WriteAllText(Path.Combine(root.FullName, "notes.lue"), "# Notes\n");
+        File.WriteAllText(Path.Combine(root.FullName, "Notes.LUE"), "# Also\n");
+
+        var chapters = Path.Combine(root.FullName, "chapters");
+        Directory.CreateDirectory(chapters);
+        File.WriteAllText(Path.Combine(chapters, "skip.txt"), "no\n");
+        File.WriteAllText(Path.Combine(chapters, "one.lue"), "one\n");
+
+        var nested = Path.Combine(root.FullName, "nested");
+        Directory.CreateDirectory(Path.Combine(nested, "deep"));
+        File.WriteAllText(Path.Combine(nested, "deep", "two.lue"), "two\n");
+        Directory.CreateDirectory(Path.Combine(nested, "other"));
+        File.WriteAllText(Path.Combine(nested, "other", "nope.md"), "no\n");
+
+        var names = LueFolderListing.List(root.FullName).Select(entry => Path.GetFileName(entry.Path)).ToArray();
+        Assert.Equal(["chapters", "nested", "Notes.LUE", "notes.lue"], names);
+
+        var nestedNames = LueFolderListing.List(nested).Select(entry => Path.GetFileName(entry.Path)).ToArray();
+        Assert.Equal(["deep"], nestedNames);
+        Assert.True(LueFolderListing.List(chapters).Single().IsDirectory == false);
+    }
 }
 
 public class RenderAndExportTests

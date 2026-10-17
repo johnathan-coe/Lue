@@ -3,17 +3,11 @@ using Gtk;
 namespace LueGtk.Ui;
 
 /// <summary>
-/// A single-level folder list. Folders open in place, and text documents are handed
-/// to the editor. Hidden names are skipped.
+/// A single-level folder list of .lue documents. Folders appear only when they
+/// contain a .lue file. Hidden names are skipped.
 /// </summary>
 sealed class FolderSidebar
 {
-    static readonly HashSet<string> TextExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".lue", ".md", ".markdown", ".txt", ".css", ".html", ".ini",
-        ".py", ".cs", ".json", ".xml", ".svg", ".log"
-    };
-
     readonly Dictionary<ListBoxRow, string> _paths = [];
     readonly ListBox _list;
     readonly Label _title;
@@ -24,7 +18,6 @@ sealed class FolderSidebar
     public string Directory { get; private set; }
 
     public event Action<string>? FileChosen;
-    public event Action<string>? Rejected;
 
     public FolderSidebar(string directory)
     {
@@ -91,27 +84,10 @@ sealed class FolderSidebar
         _up.Sensitive = System.IO.Directory.GetParent(full) is not null;
 
         ClearRows();
-        IEnumerable<string> entries;
-        try
-        {
-            entries = System.IO.Directory.EnumerateFileSystemEntries(full);
-        }
-        catch (Exception ex)
-        {
-            AddNote(ex.Message);
-            return;
-        }
-
-        var rows = entries
-            .Where(entry => !Path.GetFileName(entry).StartsWith('.'))
-            .Select(entry => (Path: entry, IsDirectory: System.IO.Directory.Exists(entry)))
-            .OrderBy(entry => entry.IsDirectory ? 0 : 1)
-            .ThenBy(entry => Path.GetFileName(entry.Path), StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
+        var rows = LueFolderListing.List(full);
         if (rows.Count == 0)
         {
-            AddNote("Empty folder");
+            AddNote("No Lue files");
             return;
         }
 
@@ -163,13 +139,6 @@ sealed class FolderSidebar
         if (System.IO.Directory.Exists(path))
         {
             ShowDirectory(path);
-            return;
-        }
-
-        var extension = Path.GetExtension(path);
-        if (!TextExtensions.Contains(extension))
-        {
-            Rejected?.Invoke(path);
             return;
         }
 

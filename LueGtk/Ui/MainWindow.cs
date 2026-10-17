@@ -34,11 +34,6 @@ sealed class MainWindow
 
         _sidebar = new FolderSidebar(_session.WorkingDirectory);
         _sidebar.FileChosen += path => _ = OpenFromSidebarAsync(path);
-        _sidebar.Rejected += path =>
-        {
-            SetStatus($"Lue edits text documents, not {Path.GetFileName(path)}");
-            _sidebar.Select(_session.FilePath);
-        };
         _sidebar.Select(_session.FilePath);
 
         _sidebarPane = Revealer.New();
