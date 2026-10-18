@@ -49,12 +49,6 @@ public static class LineRenderer
         };
     }
 
-    public static RenderedContent Render(string line, Theme theme, string workingDirectory)
-    {
-        var style = ElementStyle.For(theme, KindOf(line));
-        return Render(line, workingDirectory, style.Background, style.Foreground);
-    }
-
     static RenderedContent RenderImage(string line, string workingDirectory)
     {
         var filename = line.Length > 0 ? line[1..] : "";

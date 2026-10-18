@@ -1,7 +1,7 @@
 namespace LueGtk;
 
 /// <summary>
-/// Locates the welcome document, logo, and the default stylesheet used by HTML export.
+/// Locates the welcome document and logo.
 /// Prefers files copied next to the executable, then walks up toward the repository root.
 /// </summary>
 public static class AppPaths
@@ -9,10 +9,6 @@ public static class AppPaths
     public static string Root { get; } = FindRoot();
 
     public static string Welcome => Path.Combine(Root, "welcome.lue");
-
-    public static string ThemesDirectory => Path.Combine(Root, "themes");
-
-    public static string DefaultTheme => Path.Combine(ThemesDirectory, "ms");
 
     public static bool SamePath(string left, string right)
     {

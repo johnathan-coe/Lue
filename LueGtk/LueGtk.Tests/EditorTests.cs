@@ -276,20 +276,8 @@ public class EditSessionTests
     }
 }
 
-public class RenderAndExportTests
+public class RenderTests
 {
-    static string RepoRoot()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
-        {
-            if (File.Exists(Path.Combine(dir.FullName, "welcome.lue")))
-                return dir.FullName;
-            dir = dir.Parent;
-        }
-        throw new InvalidOperationException("Repository root was not found.");
-    }
-
     [Fact]
     public void ClassifiesLinesTheSameWayAsThePythonEditor()
     {
@@ -301,14 +289,13 @@ public class RenderAndExportTests
         Assert.Equal("tex", LineRenderer.KindOf(@"$ x = \frac{-b}{2a}"));
         Assert.Equal("body", LineRenderer.KindOf("Lue is an editor"));
         Assert.Equal("About", LineRenderer.StripMarkers("## About"));
-        Assert.Equal("• Just", LineRenderer.Render("- Just", Theme.Load(Path.Combine(RepoRoot(), "themes", "ms")), ".").Text);
+        Assert.Equal("• Just", LineRenderer.Render("- Just", ".").Text);
     }
 
     [Fact]
     public void MissingImageBecomesAnErrorString()
     {
-        var theme = Theme.Load(Path.Combine(RepoRoot(), "themes", "ms"));
-        var rendered = LineRenderer.Render("^missing.png", theme, Path.GetTempPath());
+        var rendered = LineRenderer.Render("^missing.png", Path.GetTempPath());
         Assert.Equal("Image 'missing.png' not found!", rendered.Text);
         Assert.False(rendered.IsImage);
     }
@@ -321,42 +308,5 @@ public class RenderAndExportTests
         Assert.Contains("e6e6e6", document, StringComparison.Ordinal);
         Assert.Contains(@"\frac{1}{2}", document, StringComparison.Ordinal);
         Assert.Contains("preview", document, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void HtmlExportMatchesThePythonDocumentShape()
-    {
-        var directory = Directory.CreateTempSubdirectory();
-        File.Copy(Path.Combine(RepoRoot(), "logo.png"), Path.Combine(directory.FullName, "logo.png"));
-        var theme = Theme.Load(Path.Combine(RepoRoot(), "themes", "ms"));
-        var lines = new[]
-        {
-            "# About",
-            "### TeX Math",
-            "- Just",
-            "^logo.png",
-            "^missing.png",
-            "A <tag> & more"
-        };
-
-        var htmlPath = HtmlExporter.Write(lines, theme, directory.FullName);
-        var html = File.ReadAllText(htmlPath);
-        var css = File.ReadAllText(Path.Combine(directory.FullName, "rendered", "index.css"));
-
-        Assert.Contains("<p class=\"h1\">About</p>", html, StringComparison.Ordinal);
-        Assert.Contains("<p class=\"h3\">TeX Math</p>", html, StringComparison.Ordinal);
-        Assert.Contains("<p class=\"li\">• Just</p>", html, StringComparison.Ordinal);
-        Assert.Contains("<img class=\"img\" src=\"img/0.png\">", html, StringComparison.Ordinal);
-        Assert.Contains("Image 'missing.png' not found!", html, StringComparison.Ordinal);
-        Assert.Contains("A &lt;tag&gt; &amp; more", html, StringComparison.Ordinal);
-        Assert.True(File.Exists(Path.Combine(directory.FullName, "rendered", "img", "0.png")));
-
-        Assert.Contains("font: 26pt \"Segoe UI Semibold\";", css, StringComparison.Ordinal);
-        Assert.Contains("font: bold 12pt \"Segoe UI\";", css, StringComparison.Ordinal);
-        Assert.Contains("background: #171717;", css, StringComparison.Ordinal);
-        Assert.Contains("margin-left: 8px;", css, StringComparison.Ordinal);
-        Assert.Contains("margin-top: 0px;", css, StringComparison.Ordinal);
-        Assert.Contains("margin-bottom: 16px;", css, StringComparison.Ordinal);
-        Assert.Contains("padding-left: 24px;", css, StringComparison.Ordinal);
     }
 }

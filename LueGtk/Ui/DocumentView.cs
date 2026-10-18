@@ -68,13 +68,6 @@ sealed class DocumentView
             row.Flush();
     }
 
-    public byte[] EncodeImage(string path)
-    {
-        var texture = Gdk.Texture.NewFromFilename(path);
-        var bytes = texture.SaveToPngBytes();
-        return bytes.GetRegionSpan<byte>(UIntPtr.Zero, bytes.GetSize()).ToArray();
-    }
-
     void Sync()
     {
         _fittedWidth = 0;

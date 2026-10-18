@@ -94,13 +94,9 @@ sealed class MainWindow
         var view = Gio.Menu.New();
         view.Append("Folder Sidebar", "app.sidebar");
 
-        var export = Gio.Menu.New();
-        export.Append(HtmlExporter.Name, "app.export-html");
-
         var bar = Gio.Menu.New();
         bar.AppendSubmenu("File", file);
         bar.AppendSubmenu("View", view);
-        bar.AppendSubmenu("Export", export);
         return PopoverMenuBar.NewFromModel(bar);
     }
 
@@ -110,7 +106,6 @@ sealed class MainWindow
         Add("open", () => _ = OpenAsync(), "<Primary>o");
         Add("quit", () => _window.Close(), "<Primary>q");
         Add("sidebar", ToggleSidebar, "F9");
-        Add("export-html", ExportHtml, null);
     }
 
     void Add(string name, Action callback, string? accelerator)
@@ -211,22 +206,6 @@ sealed class MainWindow
         finally
         {
             _saving = false;
-        }
-    }
-
-    void ExportHtml()
-    {
-        try
-        {
-            _view.Flush();
-            var theme = Theme.Load(AppPaths.DefaultTheme);
-            var path = HtmlExporter.Write(_session, theme, _view.EncodeImage);
-            SetStatus("Exported HTML to " + path);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-            _ = ErrorAsync("Could not export", ex.Message);
         }
     }
 
