@@ -11,20 +11,20 @@ sealed class DocumentView
     int _fittedWidth;
 
     public EditSession Session { get; }
-    public Theme Theme { get; private set; }
     public Widget Root => _scroll;
 
-    public DocumentView(EditSession session, Theme theme)
+    public DocumentView(EditSession session)
     {
         Session = session;
-        Theme = theme;
-        _document = Box.New(Orientation.Vertical, 0);
-        _document.AddCssClass("lue-document");
+        _document = Box.New(Orientation.Vertical, 6);
+        _document.MarginTop = 12;
+        _document.MarginBottom = 12;
+        _document.MarginStart = 12;
+        _document.MarginEnd = 12;
         _document.Hexpand = true;
         _document.Vexpand = true;
 
         _scroll = ScrolledWindow.New();
-        _scroll.AddCssClass("lue-scroll");
         _scroll.Child = _document;
         _scroll.Hexpand = true;
         _scroll.Vexpand = true;
@@ -36,12 +36,6 @@ sealed class DocumentView
             if (args.Pspec.GetName() is "width" or "height")
                 FitToViewport();
         };
-        Sync();
-    }
-
-    public void SetTheme(Theme theme)
-    {
-        Theme = theme;
         Sync();
     }
 
@@ -72,13 +66,6 @@ sealed class DocumentView
     {
         foreach (var row in _rows)
             row.Flush();
-    }
-
-    public byte[] EncodeImage(string path)
-    {
-        var texture = Gdk.Texture.NewFromFilename(path);
-        var bytes = texture.SaveToPngBytes();
-        return bytes.GetRegionSpan<byte>(UIntPtr.Zero, bytes.GetSize()).ToArray();
     }
 
     void Sync()
@@ -122,7 +109,7 @@ sealed class DocumentView
 
     public void FitToViewport()
     {
-        var width = _scroll.GetWidth() - 64;
+        var width = _scroll.GetWidth() - _document.MarginStart - _document.MarginEnd - 16;
         if (width < 40)
             width = 720;
         if (width == _fittedWidth)

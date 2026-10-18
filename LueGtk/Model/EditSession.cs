@@ -17,7 +17,7 @@ public sealed class EditSession
     public string? FilePath { get; set; }
     public string WorkingDirectory { get; private set; } = Directory.GetCurrentDirectory();
 
-    public event Action? Dirtied;
+    public event Action? Changed;
 
     public void Load(string path)
     {
@@ -136,9 +136,7 @@ public sealed class EditSession
 
     void MarkDirty()
     {
-        if (Unsaved)
-            return;
         Unsaved = true;
-        Dirtied?.Invoke();
+        Changed?.Invoke();
     }
 }
