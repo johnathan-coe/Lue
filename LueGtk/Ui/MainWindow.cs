@@ -68,7 +68,7 @@ sealed class MainWindow
         var separator = Separator.New(Orientation.Horizontal);
         root.Append(separator);
 
-        _status = Label.New("Saved");
+        _status = Label.New(SavedText(ExistingSaveTime() ?? DateTime.Now));
         _status.AddCssClass("dim-label");
         _status.Halign = Align.Fill;
         _status.Xalign = 0;
@@ -153,7 +153,7 @@ sealed class MainWindow
         _session.Save(path);
         _view.Reload();
         UpdateTitle();
-        SetStatus("Saved");
+        ShowSaved(DateTime.Now);
         SyncSidebar();
     }
 
@@ -196,7 +196,7 @@ sealed class MainWindow
                 path = DocumentFiles.NextUntitled(_sidebar.Directory);
 
             _session.Save(path!);
-            SetStatus("Saved");
+            ShowSaved(DateTime.Now);
             if (created)
             {
                 UpdateTitle();
@@ -290,7 +290,7 @@ sealed class MainWindow
             _session.EditFirst();
         _view.Reload();
         UpdateTitle();
-        SetStatus("Saved");
+        ShowSaved(ExistingSaveTime() ?? DateTime.Now);
         SyncSidebar();
     }
 
@@ -319,6 +319,18 @@ sealed class MainWindow
             ? "Lue"
             : "Lue — " + Path.GetFileName(_session.FilePath);
     }
+
+    void ShowSaved(DateTime when) => SetStatus(SavedText(when));
+
+    DateTime? ExistingSaveTime()
+    {
+        var path = _session.FilePath;
+        if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            return null;
+        return File.GetLastWriteTime(path);
+    }
+
+    static string SavedText(DateTime when) => $"Saved at {when:HH:mm:ss}";
 
     void SetStatus(string text) => _status.Label_ = text;
 
