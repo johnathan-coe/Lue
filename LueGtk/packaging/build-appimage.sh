@@ -67,8 +67,10 @@ dotnet publish "$REPO_ROOT/LueGtk/LueGtk.csproj" \
 rm -f "$PUBLISH/libcoreclrtraceptprovider.so"
 
 rm -rf "$APPDIR"
-mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib"
+mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib" "$APPDIR/apprun-hooks"
 cp -a "$PUBLISH"/. "$APPDIR/usr/bin/"
+cp "$SCRIPT_DIR/00-lue-dark.sh" "$APPDIR/apprun-hooks/00-lue-dark.sh"
+chmod +x "$APPDIR/apprun-hooks/00-lue-dark.sh"
 
 # .NET loads ICU and OpenSSL with dlopen. Ship the sonames from this system
 # so the image does not depend on the host's ICU or OpenSSL package.
