@@ -50,6 +50,25 @@ TeX lines need `pdflatex` and either `pdftocairo` (poppler-utils) or ImageMagick
 
 Optional TeX rendering uses the same `pdflatex` plus `pdftocairo` or ImageMagick tools on `PATH`.
 
+## AppImage
+
+On x86_64 Linux, with the .NET 8 SDK and the GTK 4 development files installed:
+
+```bash
+sudo apt install dotnet-sdk-8.0 libgtk-4-dev
+LueGtk/packaging/build-appimage.sh
+```
+
+The script writes `LueGtk/dist/Lue-x86_64.AppImage`. That file bundles the editor, the .NET runtime, and GTK 4, so another machine does not need those installed. TeX lines still use `pdflatex` from the host when it is available. The bundled launcher uses the X11 backend.
+
+Running an AppImage uses FUSE. On Debian and Ubuntu that package is `libfuse2`. When FUSE is not available, extract and run with `APPIMAGE_EXTRACT_AND_RUN=1`.
+
+```bash
+chmod +x LueGtk/dist/Lue-x86_64.AppImage
+./LueGtk/dist/Lue-x86_64.AppImage
+./LueGtk/dist/Lue-x86_64.AppImage notes.lue
+```
+
 ## Tests
 
 ```bash
