@@ -50,7 +50,8 @@ static class AppStyle
                 foreach (var candidate in new[]
                 {
                     Path.Combine(dir.FullName, "Fonts"),
-                    Path.Combine(dir.FullName, "LueGtk", "Fonts")
+                    Path.Combine(dir.FullName, "LueGtk", "Fonts"),
+                    Path.Combine(dir.FullName, "share", "lue", "Fonts")
                 })
                 {
                     if (File.Exists(Path.Combine(candidate, "Inter-Regular.ttf")))

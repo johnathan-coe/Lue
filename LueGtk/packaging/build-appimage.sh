@@ -69,6 +69,14 @@ rm -f "$PUBLISH/libcoreclrtraceptprovider.so"
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib" "$APPDIR/apprun-hooks"
 cp -a "$PUBLISH"/. "$APPDIR/usr/bin/"
+# Keep documents, themes, fonts, and the logo out of usr/bin so the sidebar
+# opens on "lue" instead of the runtime directory.
+mkdir -p "$APPDIR/usr/share/lue"
+for item in welcome.lue logo.png logo-icon.png themes Fonts; do
+    if [[ -e "$APPDIR/usr/bin/$item" ]]; then
+        mv "$APPDIR/usr/bin/$item" "$APPDIR/usr/share/lue/$item"
+    fi
+done
 cp "$SCRIPT_DIR/00-lue-dark.sh" "$APPDIR/apprun-hooks/00-lue-dark.sh"
 chmod +x "$APPDIR/apprun-hooks/00-lue-dark.sh"
 

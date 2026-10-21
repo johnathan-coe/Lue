@@ -20,7 +20,8 @@ public static class AppPaths
 
     static string FindRoot()
     {
-        foreach (var start in new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() })
+        var share = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "share", "lue"));
+        foreach (var start in new[] { AppContext.BaseDirectory, share, Directory.GetCurrentDirectory() })
         {
             // Prefer the outermost match so a copied welcome file in the build
             // output does not hide the repository that contains it.
