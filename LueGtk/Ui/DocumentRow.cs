@@ -6,9 +6,14 @@ namespace LueGtk.Ui;
 
 sealed class DocumentRow
 {
+    static readonly string[] NativeClasses = ["title-1", "title-2", "title-3", "body"];
+    static bool _colorsReady;
+
     readonly DocumentView _view;
     readonly Label _label;
     readonly Picture _picture;
+    readonly Overlay _imageSlot;
+    readonly Box _imageFrame;
     readonly TextView _editor;
     bool _suppress;
 
@@ -21,7 +26,6 @@ sealed class DocumentRow
         Line = line;
         _view = view;
         Root = Box.New(Orientation.Vertical, 0);
-        Root.AddCssClass("lue-item");
         Root.Hexpand = true;
 
         _label = Label.New("");
@@ -36,9 +40,24 @@ sealed class DocumentRow
 
         _picture = Picture.New();
         _picture.CanShrink = true;
+        _picture.Hexpand = false;
+        _picture.Vexpand = false;
         _picture.ContentFit = ContentFit.ScaleDown;
-        _picture.Halign = Align.Start;
-        _picture.Valign = Align.Start;
+        _picture.Halign = Align.Fill;
+        _picture.Valign = Align.Fill;
+
+        // Picture reports a height from the full column width. The frame's size
+        // request is the real image size, and the picture is only painted on top.
+        _imageFrame = Box.New(Orientation.Horizontal, 0);
+        _imageFrame.Halign = Align.Start;
+        _imageFrame.Valign = Align.Start;
+        _imageSlot = Overlay.New();
+        _imageSlot.Child = _imageFrame;
+        _imageSlot.Hexpand = false;
+        _imageSlot.Vexpand = false;
+        _imageSlot.Halign = Align.Start;
+        _imageSlot.Valign = Align.Start;
+        _imageSlot.AddOverlay(_picture);
 
         _editor = TextView.New();
         _editor.WrapMode = WrapMode.WordChar;
@@ -50,7 +69,7 @@ sealed class DocumentRow
         _editor.BottomMargin = 2;
 
         Root.Append(_label);
-        Root.Append(_picture);
+        Root.Append(_imageSlot);
         Root.Append(_editor);
 
         var click = GestureClick.New();
@@ -61,6 +80,7 @@ sealed class DocumentRow
                 _view.Activate(Line);
         };
         Root.AddController(click);
+        Root.OnMap += (_, _) => OnMapped();
 
         var keys = EventControllerKey.New();
         keys.PropagationPhase = PropagationPhase.Capture;
@@ -76,6 +96,7 @@ sealed class DocumentRow
         {
             _label.Visible = false;
             _picture.Visible = false;
+            _imageSlot.Visible = false;
             _editor.Visible = true;
             if (CurrentText() != Line.Text)
             {
@@ -89,24 +110,27 @@ sealed class DocumentRow
         }
 
         _editor.Visible = false;
-        var rendered = LineRenderer.Render(Line.Text, _view.Theme, _view.Session.WorkingDirectory);
-        var style = ElementStyle.For(_view.Theme, LineRenderer.KindOf(Line.Text));
+        var colors = WidgetColors(_label);
+        var rendered = LineRenderer.Render(Line.Text, _view.Session.WorkingDirectory, colors.Background, colors.Foreground);
         if (rendered.IsImage && TryLoad(rendered, out var paintable))
         {
             _label.Visible = false;
             _picture.Visible = true;
+            _imageSlot.Visible = true;
             _picture.Paintable = paintable!;
             _picture.AlternativeText = rendered.Text ?? Path.GetFileName(rendered.ImagePath ?? "image");
-            _picture.Halign = style.Anchor == "center" ? Align.Center : Align.Start;
+            FitPicture(int.MaxValue);
         }
         else
         {
             _picture.Visible = false;
+            _imageSlot.Visible = false;
+            _imageFrame.WidthRequest = -1;
+            _imageFrame.HeightRequest = -1;
             _label.Visible = true;
             _label.Label_ = rendered.Text ?? "";
-            var centered = style.Justify == "center";
-            _label.Justify = centered ? Justification.Center : Justification.Left;
-            _label.Xalign = centered ? 0.5f : 0f;
+            _label.Justify = Justification.Left;
+            _label.Xalign = 0;
         }
 
         Root.SetCursorFromName("pointer");
@@ -121,7 +145,17 @@ sealed class DocumentRow
 
     public void Fit(int width)
     {
-        if (!_editor.Visible || width < 40)
+        width -= Root.MarginStart;
+        if (width < 40)
+            return;
+
+        if (_picture.Visible)
+        {
+            FitPicture(width);
+            return;
+        }
+
+        if (!_editor.Visible)
             return;
 
         _editor.WidthRequest = width;
@@ -129,11 +163,32 @@ sealed class DocumentRow
         _editor.HeightRequest = Math.Max(minimum, natural);
     }
 
+    void FitPicture(int width)
+    {
+        var paintable = _picture.Paintable;
+        if (paintable is null || width < 1)
+            return;
+
+        var intrinsicWidth = paintable.GetIntrinsicWidth();
+        var intrinsicHeight = paintable.GetIntrinsicHeight();
+        if (intrinsicWidth <= 0 || intrinsicHeight <= 0)
+            return;
+
+        var displayWidth = Math.Min(width, intrinsicWidth);
+        var displayHeight = Math.Max(1, (int)Math.Round(intrinsicHeight * (displayWidth / (double)intrinsicWidth)));
+        _imageFrame.WidthRequest = displayWidth;
+        _imageFrame.HeightRequest = displayHeight;
+    }
+
     public void Flush()
     {
         if (!Line.Editing)
             return;
-        Line.Text = CurrentText();
+        var text = CurrentText();
+        if (text == Line.Text)
+            return;
+        Line.Text = text;
+        _view.Session.NoteEdit();
     }
 
     void OnChanged()
@@ -200,11 +255,57 @@ sealed class DocumentRow
         Buffer.PlaceCursor(end);
     }
 
+    void OnMapped()
+    {
+        if (_colorsReady || Line.Editing || LineRenderer.KindOf(Line.Text) != LineRenderer.Tex)
+            return;
+        Refresh();
+    }
+
     void ApplyKind(string kind)
     {
-        foreach (var name in LineRenderer.Kinds)
-            Root.RemoveCssClass("kind-" + name);
-        Root.AddCssClass("kind-" + kind);
+        foreach (var name in NativeClasses)
+        {
+            _label.RemoveCssClass(name);
+            _editor.RemoveCssClass(name);
+        }
+
+        var native = kind switch
+        {
+            LineRenderer.Heading1 => "title-1",
+            LineRenderer.Heading2 => "title-2",
+            LineRenderer.Heading3 => "title-3",
+            _ => "body"
+        };
+        _label.AddCssClass(native);
+        _editor.AddCssClass(native);
+        Root.MarginStart = kind == LineRenderer.Bullet ? 16 : 0;
+    }
+
+    static (string Background, string Foreground) WidgetColors(Widget widget)
+    {
+        var context = widget.GetStyleContext();
+        var background = NamedColor(context, "theme_bg_color") ?? NamedColor(context, "window_bg_color") ?? "";
+        var foreground = NamedColor(context, "theme_fg_color") ?? NamedColor(context, "window_fg_color") ?? "";
+        if (foreground.Length == 0)
+        {
+            widget.GetColor(out var color);
+            foreground = ToHex(color);
+        }
+        if (background.Length > 0 && foreground.Length > 0)
+            _colorsReady = true;
+        return (background, foreground);
+    }
+
+    static string? NamedColor(StyleContext context, string name)
+    {
+        return context.LookupColor(name, out var color) ? ToHex(color) : null;
+    }
+
+    static string ToHex(RGBA color)
+    {
+        static int Channel(float value) => (int)Math.Clamp(Math.Round(value * 255), 0, 255);
+        return $"#{Channel(color.Red):X2}{Channel(color.Green):X2}{Channel(color.Blue):X2}";
     }
 
     static bool TryLoad(RenderedContent rendered, out Gdk.Paintable? paintable)

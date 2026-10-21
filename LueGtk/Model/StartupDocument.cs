@@ -4,7 +4,7 @@ public static class StartupDocument
 {
     /// <summary>
     /// Opens the welcome document, or the path passed on the command line.
-    /// A missing path becomes an empty editable line that will be written on Save.
+    /// A missing path becomes an empty editable line and is written when the text changes.
     /// The welcome document is shown rendered; every other document starts on its first line.
     /// </summary>
     public static void OpenInitial(EditSession session, string? argument, string welcomePath)

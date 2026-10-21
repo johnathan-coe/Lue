@@ -12,7 +12,7 @@ Lue edits a line-oriented document. A line renders as a heading, body text, bull
 | `$formula` | TeX math, when a LaTeX install is available |
 | anything else | Body text |
 
-File, Theme, and Export behave like the Tkinter app. Themes are the shared `themes/` stylesheets. Export writes `rendered/index.html` and `rendered/index.css` beside the document. Ctrl+S saves, Ctrl+N starts a new document, Ctrl+O opens, and Ctrl+Shift+S is Save As. Closing with unsaved edits asks whether to save.
+The window uses GTK’s dark theme and the Inter typeface. There is no theme menu and no custom color stylesheet: headings use GTK’s `title-1`, `title-2`, and `title-3` styles, and the rest of the text uses the theme’s body style. Inter is bundled with the app under the SIL Open Font License so Linux and Windows share the same face. A folder sidebar lists .lue files in the document’s directory. Folders appear only when they contain a .lue file. Choose a folder to open it, or a file to edit it. The sidebar button and View → Folder Sidebar hide it; F9 does the same. Edits are written to the open `.lue` file as they happen, so there is no Save command and closing does not ask about unsaved changes. File → New creates the next `untitled.lue` in the folder you are browsing. Ctrl+N starts a new document and Ctrl+O opens one.
 
 ## Linux
 
@@ -75,4 +75,4 @@ chmod +x LueGtk/dist/Lue-x86_64.AppImage
 dotnet test LueGtk/LueGtk.sln
 ```
 
-The tests cover theme loading, line classification, the edit/insert/remove rules, and HTML export. They do not need a display.
+The tests cover theme loading, line classification, and the edit/insert/remove rules. They do not need a display.

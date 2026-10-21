@@ -5,7 +5,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>LueGtk</RootNamespace>
     <AssemblyName>LueGtk</AssemblyName>
     <Description>Native GTK 4 port of the Lue document editor.</Description>
@@ -21,11 +20,13 @@
     <Content Remove="LueGtk.Tests/**" />
   </ItemGroup>
 
-  <!-- Share the repository themes, welcome document, and logo with the Python app. -->
+  <!-- Copy the welcome document, logo, and theme marker used to find the application root. -->
   <ItemGroup>
     <Content Include="..\themes\**\*.ini" Link="themes\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\welcome.lue" Link="welcome.lue" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\logo.png" Link="logo.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\logo-icon.png" Link="logo-icon.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Fonts\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

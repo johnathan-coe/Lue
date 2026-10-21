@@ -224,22 +224,60 @@ public class EditSessionTests
         Assert.True(missingSession.Lines[0].Editing);
         Assert.Equal("", missingSession.Lines[0].Text);
     }
-}
 
-public class RenderAndExportTests
-{
-    static string RepoRoot()
+    [Fact]
+    public void EveryEditRaisesChangedAndUntitledNamesSkipExistingFiles()
     {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
-        {
-            if (File.Exists(Path.Combine(dir.FullName, "welcome.lue")))
-                return dir.FullName;
-            dir = dir.Parent;
-        }
-        throw new InvalidOperationException("Repository root was not found.");
+        var directory = Directory.CreateTempSubdirectory();
+        File.WriteAllText(Path.Combine(directory.FullName, "untitled.lue"), "x\n");
+        Assert.Equal(
+            Path.Combine(directory.FullName, "untitled-2.lue"),
+            DocumentFiles.NextUntitled(directory.FullName));
+
+        var session = new EditSession();
+        var count = 0;
+        session.Changed += () => count++;
+        session.Lines.Add(new Line { Text = "a", Editing = true });
+        session.NoteEdit();
+        session.NoteEdit();
+        Assert.Equal(2, count);
+        Assert.True(session.Unsaved);
     }
 
+    [Fact]
+    public void SidebarKeepsLueFilesAndFoldersThatContainThem()
+    {
+        var root = Directory.CreateTempSubdirectory();
+        Directory.CreateDirectory(Path.Combine(root.FullName, "empty"));
+        var code = Path.Combine(root.FullName, "code");
+        Directory.CreateDirectory(code);
+        File.WriteAllText(Path.Combine(code, "main.py"), "print(1)\n");
+        File.WriteAllText(Path.Combine(root.FullName, "readme.md"), "hi\n");
+        File.WriteAllText(Path.Combine(root.FullName, "notes.lue"), "# Notes\n");
+        File.WriteAllText(Path.Combine(root.FullName, "Notes.LUE"), "# Also\n");
+
+        var chapters = Path.Combine(root.FullName, "chapters");
+        Directory.CreateDirectory(chapters);
+        File.WriteAllText(Path.Combine(chapters, "skip.txt"), "no\n");
+        File.WriteAllText(Path.Combine(chapters, "one.lue"), "one\n");
+
+        var nested = Path.Combine(root.FullName, "nested");
+        Directory.CreateDirectory(Path.Combine(nested, "deep"));
+        File.WriteAllText(Path.Combine(nested, "deep", "two.lue"), "two\n");
+        Directory.CreateDirectory(Path.Combine(nested, "other"));
+        File.WriteAllText(Path.Combine(nested, "other", "nope.md"), "no\n");
+
+        var names = LueFolderListing.List(root.FullName).Select(entry => Path.GetFileName(entry.Path)).ToArray();
+        Assert.Equal(["chapters", "nested", "Notes.LUE", "notes.lue"], names);
+
+        var nestedNames = LueFolderListing.List(nested).Select(entry => Path.GetFileName(entry.Path)).ToArray();
+        Assert.Equal(["deep"], nestedNames);
+        Assert.True(LueFolderListing.List(chapters).Single().IsDirectory == false);
+    }
+}
+
+public class RenderTests
+{
     [Fact]
     public void ClassifiesLinesTheSameWayAsThePythonEditor()
     {
@@ -251,14 +289,13 @@ public class RenderAndExportTests
         Assert.Equal("tex", LineRenderer.KindOf(@"$ x = \frac{-b}{2a}"));
         Assert.Equal("body", LineRenderer.KindOf("Lue is an editor"));
         Assert.Equal("About", LineRenderer.StripMarkers("## About"));
-        Assert.Equal("• Just", LineRenderer.Render("- Just", Theme.Load(Path.Combine(RepoRoot(), "themes", "ms")), ".").Text);
+        Assert.Equal("• Just", LineRenderer.Render("- Just", ".").Text);
     }
 
     [Fact]
     public void MissingImageBecomesAnErrorString()
     {
-        var theme = Theme.Load(Path.Combine(RepoRoot(), "themes", "ms"));
-        var rendered = LineRenderer.Render("^missing.png", theme, Path.GetTempPath());
+        var rendered = LineRenderer.Render("^missing.png", Path.GetTempPath());
         Assert.Equal("Image 'missing.png' not found!", rendered.Text);
         Assert.False(rendered.IsImage);
     }
@@ -271,42 +308,5 @@ public class RenderAndExportTests
         Assert.Contains("e6e6e6", document, StringComparison.Ordinal);
         Assert.Contains(@"\frac{1}{2}", document, StringComparison.Ordinal);
         Assert.Contains("preview", document, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void HtmlExportMatchesThePythonDocumentShape()
-    {
-        var directory = Directory.CreateTempSubdirectory();
-        File.Copy(Path.Combine(RepoRoot(), "logo.png"), Path.Combine(directory.FullName, "logo.png"));
-        var theme = Theme.Load(Path.Combine(RepoRoot(), "themes", "ms"));
-        var lines = new[]
-        {
-            "# About",
-            "### TeX Math",
-            "- Just",
-            "^logo.png",
-            "^missing.png",
-            "A <tag> & more"
-        };
-
-        var htmlPath = HtmlExporter.Write(lines, theme, directory.FullName);
-        var html = File.ReadAllText(htmlPath);
-        var css = File.ReadAllText(Path.Combine(directory.FullName, "rendered", "index.css"));
-
-        Assert.Contains("<p class=\"h1\">About</p>", html, StringComparison.Ordinal);
-        Assert.Contains("<p class=\"h3\">TeX Math</p>", html, StringComparison.Ordinal);
-        Assert.Contains("<p class=\"li\">• Just</p>", html, StringComparison.Ordinal);
-        Assert.Contains("<img class=\"img\" src=\"img/0.png\">", html, StringComparison.Ordinal);
-        Assert.Contains("Image 'missing.png' not found!", html, StringComparison.Ordinal);
-        Assert.Contains("A &lt;tag&gt; &amp; more", html, StringComparison.Ordinal);
-        Assert.True(File.Exists(Path.Combine(directory.FullName, "rendered", "img", "0.png")));
-
-        Assert.Contains("font: 26pt \"Segoe UI Semibold\";", css, StringComparison.Ordinal);
-        Assert.Contains("font: bold 12pt \"Segoe UI\";", css, StringComparison.Ordinal);
-        Assert.Contains("background: #171717;", css, StringComparison.Ordinal);
-        Assert.Contains("margin-left: 8px;", css, StringComparison.Ordinal);
-        Assert.Contains("margin-top: 0px;", css, StringComparison.Ordinal);
-        Assert.Contains("margin-bottom: 16px;", css, StringComparison.Ordinal);
-        Assert.Contains("padding-left: 24px;", css, StringComparison.Ordinal);
     }
 }

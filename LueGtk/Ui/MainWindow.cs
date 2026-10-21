@@ -9,53 +9,76 @@ sealed class MainWindow
     readonly ApplicationWindow _window;
     readonly EditSession _session;
     readonly DocumentView _view;
+    readonly FolderSidebar _sidebar;
+    readonly Revealer _sidebarPane;
+    readonly ToggleButton _sidebarToggle;
     readonly Label _status;
-    Theme _theme;
-    CssProvider? _css;
-    bool _prompting;
-    bool _allowClose;
+    bool _sidebarOpen = true;
+    bool _saving;
 
     public MainWindow(Application application, string? argument)
     {
         _application = application;
         _session = new EditSession();
-        _session.Dirtied += () => SetStatus("Unsaved changes");
+        _session.Changed += Autosave;
 
-        IReadOnlyCollection<string>? fonts = null;
-        try { fonts = FontFamilies.Load(); }
-        catch (Exception ex) { Console.Error.WriteLine("Fonts: " + ex.Message); }
-
-        _theme = Theme.Load(AppPaths.DefaultTheme, fonts);
         StartupDocument.OpenInitial(_session, argument, AppPaths.Welcome);
-        _view = new DocumentView(_session, _theme);
+        _view = new DocumentView(_session);
 
         _window = ApplicationWindow.New(application);
         _window.Application = application;
         _window.Title = "Lue";
-        _window.SetDefaultSize(860, 720);
-        _window.AddCssClass("lue-window");
+        _window.SetDefaultSize(1080, 720);
         _window.OnCloseRequest += (_, _) => OnClose();
 
+        _sidebar = new FolderSidebar(_session.WorkingDirectory);
+        _sidebar.FileChosen += path => _ = OpenFromSidebarAsync(path);
+        _sidebar.Select(_session.FilePath);
+
+        _sidebarPane = Revealer.New();
+        _sidebarPane.TransitionType = RevealerTransitionType.SlideRight;
+        _sidebarPane.RevealChild = true;
+        _sidebarPane.Child = _sidebar.Root;
+
+        _sidebarToggle = ToggleButton.New();
+        _sidebarToggle.IconName = "sidebar-show-symbolic";
+        _sidebarToggle.Active = true;
+        _sidebarToggle.TooltipText = "Folder sidebar (F9)";
+        _sidebarToggle.AddCssClass("flat");
+        _sidebarToggle.Valign = Align.Center;
+        _sidebarToggle.OnToggled += (_, _) => SetSidebar(_sidebarToggle.Active);
+
+        var menu = BuildMenu();
+        menu.Hexpand = true;
+
+        var menuRow = Box.New(Orientation.Horizontal, 0);
+        menuRow.Append(_sidebarToggle);
+        menuRow.Append(menu);
+
+        var body = Box.New(Orientation.Horizontal, 0);
+        body.Hexpand = true;
+        body.Vexpand = true;
+        body.Append(_sidebarPane);
+        body.Append(_view.Root);
+
         var root = Box.New(Orientation.Vertical, 0);
-        root.Append(BuildMenu());
-        root.Append(_view.Root);
+        root.Append(menuRow);
+        root.Append(body);
 
         var separator = Separator.New(Orientation.Horizontal);
         root.Append(separator);
 
-        _status = Label.New("Unsaved since load!");
-        _status.AddCssClass("lue-status");
+        _status = Label.New(SavedText(ExistingSaveTime() ?? DateTime.Now));
+        _status.AddCssClass("dim-label");
         _status.Halign = Align.Fill;
         _status.Xalign = 0;
+        _status.MarginTop = 6;
+        _status.MarginBottom = 6;
+        _status.MarginStart = 12;
+        _status.MarginEnd = 12;
         root.Append(_status);
 
         _window.Child = root;
-        _window.OnRealize += (_, _) =>
-        {
-            if (_css is null)
-                ApplyCss(ThemeCss.Build(_theme));
-        };
-        ApplyCss(ThemeCss.Build(_theme));
         UpdateTitle();
         InstallActions();
     }
@@ -67,40 +90,22 @@ sealed class MainWindow
         var file = Gio.Menu.New();
         file.Append("New", "app.new");
         file.Append("Open", "app.open");
-        file.Append("Save", "app.save");
-        file.Append("Save As", "app.save-as");
 
-        var themes = Gio.Menu.New();
-        foreach (var directory in AppPaths.ThemeDirectories())
-        {
-            var name = Path.GetFileName(directory);
-            themes.Append(name, "app.theme-" + name);
-        }
-
-        var export = Gio.Menu.New();
-        export.Append(HtmlExporter.Name, "app.export-html");
+        var view = Gio.Menu.New();
+        view.Append("Folder Sidebar", "app.sidebar");
 
         var bar = Gio.Menu.New();
         bar.AppendSubmenu("File", file);
-        bar.AppendSubmenu("Theme", themes);
-        bar.AppendSubmenu("Export", export);
+        bar.AppendSubmenu("View", view);
         return PopoverMenuBar.NewFromModel(bar);
     }
 
     void InstallActions()
     {
-        Add("new", () => _ = NewAsync(), "<Primary>n");
+        Add("new", NewDocument, "<Primary>n");
         Add("open", () => _ = OpenAsync(), "<Primary>o");
-        Add("save", () => _ = SaveAsync(), "<Primary>s");
-        Add("save-as", () => _ = SaveAsAsync(), "<Primary><Shift>s");
         Add("quit", () => _window.Close(), "<Primary>q");
-        Add("export-html", ExportHtml, null);
-        foreach (var directory in AppPaths.ThemeDirectories())
-        {
-            var captured = directory;
-            var name = Path.GetFileName(captured);
-            Add("theme-" + name, () => SwitchTheme(captured), null);
-        }
+        Add("sidebar", ToggleSidebar, "F9");
     }
 
     void Add(string name, Action callback, string? accelerator)
@@ -114,74 +119,41 @@ sealed class MainWindow
 
     bool OnClose()
     {
-        if (_allowClose || !_session.Unsaved)
-            return false;
-        if (_prompting)
-            return true;
-
-        _prompting = true;
-        _ = ConfirmCloseAsync();
-        return true;
-    }
-
-    async Task ConfirmCloseAsync()
-    {
         try
         {
-            if (await EnsureSavedAsync())
-            {
-                _allowClose = true;
-                _window.Close();
-            }
+            Persist();
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine(ex);
-            await ErrorAsync("Could not close", ex.Message);
         }
-        finally
-        {
-            _prompting = false;
-        }
-    }
 
-    async Task<bool> EnsureSavedAsync()
-    {
-        _view.Flush();
-        if (!_session.Unsaved)
-            return true;
-
-        var dialog = AlertDialog.NewWithProperties([]);
-        dialog.Message = "Unsaved Changes!";
-        dialog.Detail = "Save changes?";
-        dialog.Buttons = ["Don't Save", "Cancel", "Save"];
-        dialog.CancelButton = 1;
-        dialog.DefaultButton = 2;
-        dialog.Modal = true;
-
-        var choice = await dialog.ChooseAsync(_window);
-        if (choice == 0)
-            return true;
-        if (choice == 2)
-            return await SaveAsync();
         return false;
     }
 
-    async Task NewAsync()
+    void Persist()
     {
-        if (!await EnsureSavedAsync())
+        _view.Flush();
+        if (!_session.Unsaved || string.IsNullOrEmpty(_session.FilePath))
             return;
+        _session.Save(_session.FilePath);
+    }
+
+    void NewDocument()
+    {
+        Persist();
+        var directory = _sidebar.Directory;
         _session.NewDocument();
+        var path = DocumentFiles.NextUntitled(directory);
+        _session.Save(path);
         _view.Reload();
         UpdateTitle();
-        SetStatus("Unsaved since load!");
+        ShowSaved(DateTime.Now);
+        SyncSidebar();
     }
 
     async Task OpenAsync()
     {
-        if (!await EnsureSavedAsync())
-            return;
-
         var dialog = FileDialog.New();
         dialog.Title = "Open";
         dialog.Modal = true;
@@ -192,14 +164,8 @@ sealed class MainWindow
             var path = file?.GetPath();
             if (string.IsNullOrEmpty(path))
                 return;
-            _session.Load(path);
-            if (_session.Lines.Count == 0)
-                _session.Lines.Add(new Line { Editing = true });
-            else
-                _session.EditFirst();
-            _view.Reload();
-            UpdateTitle();
-            SetStatus("Unsaved since load!");
+            Persist();
+            LoadDocument(path);
         }
         catch (GLib.GException ex) when (IsCancel(ex))
         {
@@ -210,118 +176,37 @@ sealed class MainWindow
         }
     }
 
-    async Task<bool> SaveAsync()
+    void Autosave()
     {
-        _view.Flush();
-        if (string.IsNullOrEmpty(_session.FilePath))
-            return await SaveAsAsync();
+        if (_saving)
+            return;
 
-        try
-        {
-            SetStatus("Saving...");
-            _session.Save(_session.FilePath);
-            SetStatus($"Saved at {DateTime.Now:HH:mm:ss.ffffff}");
-            UpdateTitle();
-            _view.Reload();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            await ErrorAsync("Could not save", ex.Message);
-            return false;
-        }
-    }
-
-    async Task<bool> SaveAsAsync()
-    {
-        _view.Flush();
-        var dialog = FileDialog.New();
-        dialog.Title = "Save As";
-        dialog.Modal = true;
-        dialog.Filters = FileFilters();
-        dialog.InitialName = string.IsNullOrEmpty(_session.FilePath)
-            ? "untitled.lue"
-            : Path.GetFileName(_session.FilePath);
-        if (!string.IsNullOrEmpty(_session.FilePath))
-        {
-            var directory = Path.GetDirectoryName(Path.GetFullPath(_session.FilePath));
-            if (!string.IsNullOrEmpty(directory))
-                dialog.InitialFolder = Gio.FileHelper.NewForPath(directory);
-        }
-
-        try
-        {
-            var file = await dialog.SaveAsync(_window);
-            var path = file?.GetPath();
-            if (string.IsNullOrEmpty(path))
-                return false;
-            SetStatus("Saving...");
-            _session.Save(path);
-            SetStatus($"Saved at {DateTime.Now:HH:mm:ss.ffffff}");
-            UpdateTitle();
-            _view.Reload();
-            return true;
-        }
-        catch (GLib.GException ex) when (IsCancel(ex))
-        {
-            return false;
-        }
-        catch (Exception ex)
-        {
-            await ErrorAsync("Could not save", ex.Message);
-            return false;
-        }
-    }
-
-    void ExportHtml()
-    {
+        _saving = true;
         try
         {
             _view.Flush();
-            var path = HtmlExporter.Write(_session, _theme, _view.EncodeImage);
-            SetStatus("Exported HTML to " + path);
+            var path = _session.FilePath;
+            var created = string.IsNullOrEmpty(path) || !File.Exists(path);
+            if (string.IsNullOrEmpty(path))
+                path = DocumentFiles.NextUntitled(_sidebar.Directory);
+
+            _session.Save(path!);
+            ShowSaved(DateTime.Now);
+            if (created)
+            {
+                UpdateTitle();
+                SyncSidebar();
+            }
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine(ex);
-            _ = ErrorAsync("Could not export", ex.Message);
+            SetStatus("Could not autosave");
         }
-    }
-
-    void SwitchTheme(string directory)
-    {
-        try
+        finally
         {
-            IReadOnlyCollection<string>? fonts = null;
-            try { fonts = FontFamilies.Load(); }
-            catch (Exception) { }
-
-            var next = Theme.Load(directory, fonts);
-            ThemeValidator.ValidateSwitch(_theme, next);
-            _theme = next;
-            ApplyCss(ThemeCss.Build(next));
-            _view.SetTheme(next);
+            _saving = false;
         }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-            _ = ErrorAsync("Could not apply theme", ex.Message);
-        }
-    }
-
-    void ApplyCss(string css)
-    {
-        var display = Gdk.Display.GetDefault();
-        if (display is null)
-            return;
-
-        if (_css is not null)
-            StyleContext.RemoveProviderForDisplay(display, _css);
-
-        _css = CssProvider.New();
-        _css.OnParsingError += (_, args) => Console.Error.WriteLine("CSS: " + args.Error);
-        _css.LoadFromString(css);
-        StyleContext.AddProviderForDisplay(display, _css, Constants.STYLE_PROVIDER_PRIORITY_APPLICATION);
     }
 
     async Task ErrorAsync(string message, string detail)
@@ -358,12 +243,73 @@ sealed class MainWindow
         return filter;
     }
 
+    async Task OpenFromSidebarAsync(string path)
+    {
+        if (!string.IsNullOrEmpty(_session.FilePath) && AppPaths.SamePath(path, _session.FilePath))
+            return;
+
+        try
+        {
+            Persist();
+            LoadDocument(path);
+        }
+        catch (Exception ex)
+        {
+            await ErrorAsync("Could not open", ex.Message);
+            _sidebar.Select(_session.FilePath);
+        }
+    }
+
+    void LoadDocument(string path)
+    {
+        _session.Load(path);
+        if (_session.Lines.Count == 0)
+            _session.Lines.Add(new Line { Editing = true });
+        else
+            _session.EditFirst();
+        _view.Reload();
+        UpdateTitle();
+        ShowSaved(ExistingSaveTime() ?? DateTime.Now);
+        SyncSidebar();
+    }
+
+    void SyncSidebar()
+    {
+        var directory = string.IsNullOrEmpty(_session.FilePath)
+            ? _session.WorkingDirectory
+            : Path.GetDirectoryName(Path.GetFullPath(_session.FilePath)) ?? _session.WorkingDirectory;
+        _sidebar.ShowDirectory(directory);
+        _sidebar.Select(_session.FilePath);
+    }
+
+    void ToggleSidebar() => SetSidebar(!_sidebarOpen);
+
+    void SetSidebar(bool open)
+    {
+        _sidebarOpen = open;
+        _sidebarPane.RevealChild = open;
+        if (_sidebarToggle.Active != open)
+            _sidebarToggle.Active = open;
+    }
+
     void UpdateTitle()
     {
         _window.Title = string.IsNullOrEmpty(_session.FilePath)
             ? "Lue"
             : "Lue — " + Path.GetFileName(_session.FilePath);
     }
+
+    void ShowSaved(DateTime when) => SetStatus(SavedText(when));
+
+    DateTime? ExistingSaveTime()
+    {
+        var path = _session.FilePath;
+        if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            return null;
+        return File.GetLastWriteTime(path);
+    }
+
+    static string SavedText(DateTime when) => $"Saved at {when:HH:mm:ss}";
 
     void SetStatus(string text) => _status.Label_ = text;
 
