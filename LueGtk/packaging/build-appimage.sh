@@ -196,7 +196,47 @@ bundle_private_libraries() {
                 progress=1
             done < <(needed_sonames "$elf")
         done < <(find "$APPDIR" -type f -print0)
+
+        # Typelibs name libraries GObject loads with dlopen. Those names are
+        # not DT_NEEDED entries. HarfBuzz-GObject is one, and it links GLib.
+        if [[ -d "$APPDIR/usr/lib/girepository-1.0" ]]; then
+            while IFS= read -r needed; do
+                [[ -z "$needed" ]] && continue
+                if host_library "$needed"; then
+                    continue
+                fi
+                if [[ -e "$APPDIR/usr/lib/$needed" ]]; then
+                    continue
+                fi
+                src="$(source_for_soname "$needed" || true)"
+                if [[ -z "$src" ]]; then
+                    echo "Typelib names $needed, which is not installed here." >&2
+                    continue
+                fi
+                echo "Bundling $needed"
+                cp -L "$src" "$APPDIR/usr/lib/$needed"
+                patchelf --set-rpath '$ORIGIN' "$APPDIR/usr/lib/$needed"
+                progress=1
+            done < <(grep -aohE 'lib[A-Za-z0-9._+-]+\.so(\.[0-9]+)*' "$APPDIR/usr/lib/girepository-1.0"/*.typelib | sort -u)
+        fi
     done
+
+    local missing=0
+    while IFS= read -r -d '' elf; do
+        while IFS= read -r needed; do
+            [[ -z "$needed" ]] && continue
+            if host_library "$needed"; then
+                continue
+            fi
+            if [[ ! -e "$APPDIR/usr/lib/$needed" ]]; then
+                echo "Still missing $needed, required by $elf" >&2
+                missing=1
+            fi
+        done < <(needed_sonames "$elf")
+    done < <(find "$APPDIR" -type f -print0)
+    if [[ "$missing" -ne 0 ]]; then
+        exit 1
+    fi
 }
 
 assert_resolves_inside() {
@@ -220,6 +260,7 @@ assert_resolves_inside "$APPDIR/usr/lib/libgtk-4.so.1" libfreetype.so.6
 assert_resolves_inside "$APPDIR/usr/lib/libgtk-4.so.1" libglib-2.0.so.0
 assert_resolves_inside "$APPDIR/usr/lib/libgobject-2.0.so.0" libglib-2.0.so.0
 assert_resolves_inside "$APPDIR/usr/lib/libharfbuzz.so.0" libglib-2.0.so.0
+assert_resolves_inside "$APPDIR/usr/lib/libharfbuzz-gobject.so.0" libglib-2.0.so.0
 
 toolroot="$CACHE/linuxdeploy-extracted"
 appimagetool="$toolroot/plugins/linuxdeploy-plugin-appimage/appimagetool-prefix/usr/bin/appimagetool"
@@ -229,6 +270,7 @@ if [[ ! -x "$appimagetool" ]]; then
     mv "$CACHE/squashfs-root" "$toolroot"
 fi
 rm -f "$WORK"/Lue*.AppImage
+export PATH="$(dirname "$appimagetool"):$PATH"
 ARCH=x86_64 "$appimagetool" "$APPDIR" "$WORK/Lue-x86_64.AppImage"
 chmod +x "$WORK/Lue-x86_64.AppImage"
 cp -f "$WORK/Lue-x86_64.AppImage" "$REPO_ROOT/LueGtk/dist/Lue-x86_64.AppImage"
