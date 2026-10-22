@@ -198,6 +198,34 @@ public class EditSessionTests
     }
 
     [Fact]
+    public void LaunchDirectoryStaysPutWhenNoFileIsGiven()
+    {
+        var launch = Directory.CreateTempSubdirectory();
+        var elsewhere = Directory.CreateTempSubdirectory();
+        var welcome = Path.Combine(elsewhere.FullName, "welcome.lue");
+        File.WriteAllText(welcome, "# Hello\n");
+
+        Assert.Equal(launch.FullName, AppPaths.ResolveLaunchDirectory(null, launch.FullName));
+        Assert.Equal(launch.FullName, AppPaths.ResolveLaunchDirectory("missing-owd", launch.FullName));
+        Assert.Equal(elsewhere.FullName, AppPaths.ResolveLaunchDirectory(elsewhere.FullName, launch.FullName));
+
+        var session = new EditSession();
+        StartupDocument.OpenInitial(session, null, welcome);
+        Assert.Equal(
+            launch.FullName,
+            AppPaths.SidebarDirectoryForLaunch(null, launch.FullName, session.WorkingDirectory));
+        Assert.Equal(elsewhere.FullName, session.WorkingDirectory);
+
+        var notes = Path.Combine(launch.FullName, "notes.lue");
+        File.WriteAllText(notes, "body\n");
+        var opened = new EditSession();
+        StartupDocument.OpenInitial(opened, notes, welcome);
+        Assert.Equal(
+            launch.FullName,
+            AppPaths.SidebarDirectoryForLaunch(notes, launch.FullName, opened.WorkingDirectory));
+    }
+
+    [Fact]
     public void StartupOpensWelcomeRenderedAndOtherFilesInEditMode()
     {
         var directory = Directory.CreateTempSubdirectory();

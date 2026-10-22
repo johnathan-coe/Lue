@@ -12,7 +12,7 @@ Lue edits a line-oriented document. A line renders as a heading, body text, bull
 | `$formula` | TeX math, when a LaTeX install is available |
 | anything else | Body text |
 
-The window uses GTK’s dark theme and the Inter typeface. There is no theme menu and no custom color stylesheet: headings use GTK’s `title-1`, `title-2`, and `title-3` styles, and the rest of the text uses the theme’s body style. Inter is bundled with the app under the SIL Open Font License so Linux and Windows share the same face. A folder sidebar lists .lue files in the document’s directory. Folders appear only when they contain a .lue file. Choose a folder to open it, or a file to edit it. The sidebar button and View → Folder Sidebar hide it; F9 does the same. Edits are written to the open `.lue` file as they happen, so there is no Save command and closing does not ask about unsaved changes. File → New creates the next `untitled.lue` in the folder you are browsing. Ctrl+N starts a new document and Ctrl+O opens one.
+The window uses GTK’s dark theme and the Inter typeface. There is no theme menu and no custom color stylesheet: headings use GTK’s `title-1`, `title-2`, and `title-3` styles, and the rest of the text uses the theme’s body style. Inter is bundled with the app under the SIL Open Font License so Linux and Windows share the same face. A folder sidebar lists .lue files in the directory the app was launched from. Folders appear only when they contain a .lue file. Choose a folder to open it, or a file to edit it. Opening a document switches the sidebar to that document’s folder. The sidebar button and View → Folder Sidebar hide it; F9 does the same. Edits are written to the open `.lue` file as they happen, so there is no Save command and closing does not ask about unsaved changes. File → New creates the next `untitled.lue` in the folder you are browsing. Ctrl+N starts a new document and Ctrl+O opens one.
 
 ## Linux
 
@@ -49,6 +49,25 @@ TeX lines need `pdflatex` and either `pdftocairo` (poppler-utils) or ImageMagick
    ```
 
 Optional TeX rendering uses the same `pdflatex` plus `pdftocairo` or ImageMagick tools on `PATH`.
+
+## AppImage
+
+On x86_64 Linux, with the .NET 8 SDK and the GTK 4 development files installed:
+
+```bash
+sudo apt install dotnet-sdk-8.0 libgtk-4-dev
+LueGtk/packaging/build-appimage.sh
+```
+
+The script writes `LueGtk/dist/Lue-x86_64.AppImage` and copies it to `LueGtk/Lue-x86_64.AppImage`. That file bundles the editor, the .NET runtime, and GTK 4, so another machine does not need those installed. HarfBuzz, fontconfig, and FreeType are included beside GTK's GLib, so the GLib in the image is the one GObject calls. TeX lines still use `pdflatex` from the host when it is available. The bundled launcher uses the X11 backend.
+
+Running an AppImage uses FUSE. On Debian and Ubuntu that package is `libfuse2`. When FUSE is not available, extract and run with `APPIMAGE_EXTRACT_AND_RUN=1`.
+
+```bash
+chmod +x LueGtk/dist/Lue-x86_64.AppImage
+./LueGtk/dist/Lue-x86_64.AppImage
+./LueGtk/dist/Lue-x86_64.AppImage notes.lue
+```
 
 ## Tests
 

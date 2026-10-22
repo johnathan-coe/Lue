@@ -8,7 +8,9 @@ sealed class DocumentView
     readonly List<DocumentRow> _rows = [];
     readonly Box _document;
     readonly ScrolledWindow _scroll;
+    Widget? _pendingScroll;
     int _fittedWidth;
+    bool _fitting;
 
     public EditSession Session { get; }
     public Widget Root => _scroll;
@@ -70,53 +72,96 @@ sealed class DocumentView
 
     void Sync()
     {
-        _fittedWidth = 0;
-        var focus = Session.Lines.FirstOrDefault(line => line.Editing);
+        var pool = new Dictionary<Line, DocumentRow>(_rows.Count);
         foreach (var row in _rows)
-            _document.Remove(row.Root);
-        _rows.Clear();
+            pool[row.Line] = row;
 
+        var next = new List<DocumentRow>(Session.Lines.Count);
         foreach (var line in Session.Lines)
         {
-            var row = new DocumentRow(line, this);
-            _rows.Add(row);
-            _document.Append(row.Root);
-            row.Refresh();
+            if (!pool.Remove(line, out var row))
+                row = new DocumentRow(line, this);
+            next.Add(row);
         }
 
-        if (focus is null)
-            return;
-
-        var focused = _rows.FirstOrDefault(row => row.Line == focus);
-        if (focused is null)
-            return;
-
-        GLib.Functions.TimeoutAdd(200, 50, () =>
+        var sameOrder = next.Count == _rows.Count;
+        if (sameOrder)
         {
-            try
+            for (var i = 0; i < next.Count; i++)
             {
-                FitToViewport();
-                focused.FocusEditor();
-                ScrollTo(focused.Root);
+                if (!ReferenceEquals(next[i], _rows[i]))
+                {
+                    sameOrder = false;
+                    break;
+                }
             }
-            catch (Exception ex)
+        }
+
+        if (!sameOrder)
+        {
+            Widget? previous = null;
+            foreach (var row in next)
             {
-                Console.Error.WriteLine("Focus: " + ex.Message);
+                if (row.Root.GetParent() is null)
+                    _document.InsertChildAfter(row.Root, previous);
+                else
+                    _document.ReorderChildAfter(row.Root, previous);
+                previous = row.Root;
             }
-            return false;
-        });
+
+            foreach (var removed in pool.Values)
+                _document.Remove(removed.Root);
+            _rows.Clear();
+            _rows.AddRange(next);
+        }
+
+        foreach (var row in _rows)
+            row.Refresh();
+
+        var focused = _rows.FirstOrDefault(row => row.Line.Editing);
+        _pendingScroll = focused?.Root;
+        FitLines(force: true);
+        focused?.FocusEditor();
+        ScrollPending();
     }
 
-    public void FitToViewport()
+    public void Refit()
     {
+        FitLines(force: true);
+        ScrollPending();
+    }
+
+    public void FitToViewport() => FitLines(force: false);
+
+    void FitLines(bool force)
+    {
+        if (_fitting)
+            return;
         var width = _scroll.GetWidth() - _document.MarginStart - _document.MarginEnd - 16;
         if (width < 40)
             width = 720;
-        if (width == _fittedWidth)
+        if (!force && width == _fittedWidth)
             return;
-        _fittedWidth = width;
-        foreach (var row in _rows)
-            row.Fit(width);
+
+        _fitting = true;
+        try
+        {
+            _fittedWidth = width;
+            foreach (var row in _rows)
+                row.Fit(width);
+        }
+        finally
+        {
+            _fitting = false;
+        }
+    }
+
+    void ScrollPending()
+    {
+        if (_pendingScroll is null || _pendingScroll.GetHeight() <= 0)
+            return;
+        ScrollTo(_pendingScroll);
+        _pendingScroll = null;
     }
 
     void ScrollTo(Widget widget)

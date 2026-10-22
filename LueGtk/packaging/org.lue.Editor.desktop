@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Lue
+Comment=Line-oriented document editor
+Exec=LueGtk %f
+Icon=lue
+Categories=Office;TextEditor;
+Terminal=false
+StartupNotify=true

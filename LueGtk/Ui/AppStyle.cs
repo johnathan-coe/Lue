@@ -38,6 +38,39 @@ static class AppStyle
 
         settings.GtkApplicationPreferDarkTheme = true;
         settings.GtkFontName = FontDescription;
+        TransparentLineEditor();
+    }
+
+    /// <summary>
+    /// The editor is drawn on top of the rendered line. A filled text-view
+    /// background reads as a flash when the caret appears.
+    /// </summary>
+    static void TransparentLineEditor()
+    {
+        var display = Gdk.Display.GetDefault();
+        if (display is null)
+            return;
+
+        try
+        {
+            var css = Gtk.CssProvider.New();
+            css.LoadFromString("""
+                textview.lue-line,
+                textview.lue-line > text,
+                textview.lue-line > border {
+                  background-color: transparent;
+                  background-image: none;
+                  border: none;
+                  box-shadow: none;
+                  padding: 0;
+                }
+                """);
+            Gtk.StyleContext.AddProviderForDisplay(display, css, 800);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine("Style: " + ex.Message);
+        }
     }
 
     static string? FontDirectory()
@@ -50,7 +83,8 @@ static class AppStyle
                 foreach (var candidate in new[]
                 {
                     Path.Combine(dir.FullName, "Fonts"),
-                    Path.Combine(dir.FullName, "LueGtk", "Fonts")
+                    Path.Combine(dir.FullName, "LueGtk", "Fonts"),
+                    Path.Combine(dir.FullName, "share", "lue", "Fonts")
                 })
                 {
                     if (File.Exists(Path.Combine(candidate, "Inter-Regular.ttf")))
