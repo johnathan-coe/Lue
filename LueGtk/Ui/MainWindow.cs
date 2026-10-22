@@ -16,11 +16,14 @@ sealed class MainWindow
     bool _sidebarOpen = true;
     bool _saving;
 
-    public MainWindow(Application application, string? argument)
+    public MainWindow(Application application, string? argument, string launchDirectory)
     {
         _application = application;
         _session = new EditSession();
         _session.Changed += Autosave;
+
+        if (!string.IsNullOrWhiteSpace(argument) && !Path.IsPathRooted(argument))
+            argument = Path.Combine(launchDirectory, argument);
 
         StartupDocument.OpenInitial(_session, argument, AppPaths.Welcome);
         _view = new DocumentView(_session);
@@ -31,7 +34,11 @@ sealed class MainWindow
         _window.SetDefaultSize(1080, 720);
         _window.OnCloseRequest += (_, _) => OnClose();
 
-        _sidebar = new FolderSidebar(_session.WorkingDirectory);
+        var sidebarDirectory = AppPaths.SidebarDirectoryForLaunch(
+            argument,
+            launchDirectory,
+            _session.WorkingDirectory);
+        _sidebar = new FolderSidebar(sidebarDirectory);
         _sidebar.FileChosen += path => _ = OpenFromSidebarAsync(path);
         _sidebar.Select(_session.FilePath);
 
@@ -157,6 +164,7 @@ sealed class MainWindow
         var dialog = FileDialog.New();
         dialog.Title = "Open";
         dialog.Modal = true;
+        dialog.InitialFolder = Gio.FileHelper.NewForPath(_sidebar.Directory);
         dialog.Filters = FileFilters();
         try
         {

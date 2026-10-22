@@ -3,6 +3,12 @@
 # hook chooses a light Adwaita theme on desktops with no color-scheme.
 export APPIMAGE_GTK_THEME="${APPIMAGE_GTK_THEME:-Adwaita:dark}"
 
+# The directory the user launched the AppImage from. Record it before any
+# later hook changes the working directory.
+if [[ -z "${OWD:-}" ]]; then
+    export OWD="$PWD"
+fi
+
 # The AppImage runtime sets APPDIR. An extracted tree sources this file from
 # apprun-hooks/, one directory below the image root.
 if [[ -z "${APPDIR:-}" ]]; then
