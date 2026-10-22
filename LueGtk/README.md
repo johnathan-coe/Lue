@@ -59,7 +59,7 @@ sudo apt install dotnet-sdk-8.0 libgtk-4-dev
 LueGtk/packaging/build-appimage.sh
 ```
 
-The script writes `LueGtk/dist/Lue-x86_64.AppImage`. That file bundles the editor, the .NET runtime, and GTK 4, so another machine does not need those installed. TeX lines still use `pdflatex` from the host when it is available. The bundled launcher uses the X11 backend.
+The script writes `LueGtk/dist/Lue-x86_64.AppImage` and copies it to `LueGtk/Lue-x86_64.AppImage`. That file bundles the editor, the .NET runtime, and GTK 4, so another machine does not need those installed. HarfBuzz, fontconfig, and FreeType are included beside GTK's GLib, so the GLib in the image is the one GObject calls. TeX lines still use `pdflatex` from the host when it is available. The bundled launcher uses the X11 backend.
 
 Running an AppImage uses FUSE. On Debian and Ubuntu that package is `libfuse2`. When FUSE is not available, extract and run with `APPIMAGE_EXTRACT_AND_RUN=1`.
 
