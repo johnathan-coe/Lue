@@ -15,18 +15,21 @@ sealed class DocumentRow
     readonly Overlay _imageSlot;
     readonly Box _imageFrame;
     readonly TextView _editor;
+    readonly Overlay _overlay;
+    string? _presentedSource;
+    bool _presentedEditing;
+    bool _showingImage;
+    string? _kind;
     bool _suppress;
 
     public Line Line { get; }
-    public Box Root { get; }
+    public Widget Root { get; }
     TextBuffer Buffer => _editor.Buffer ?? throw new InvalidOperationException("The line editor has no text buffer.");
 
     public DocumentRow(Line line, DocumentView view)
     {
         Line = line;
         _view = view;
-        Root = Box.New(Orientation.Vertical, 0);
-        Root.Hexpand = true;
 
         _label = Label.New("");
         _label.Wrap = true;
@@ -34,6 +37,7 @@ sealed class DocumentRow
         _label.WidthChars = 1;
         _label.Hexpand = true;
         _label.Halign = Align.Fill;
+        _label.Valign = Align.Start;
         _label.Xalign = 0;
         _label.UseMarkup = false;
         _label.Selectable = false;
@@ -58,19 +62,35 @@ sealed class DocumentRow
         _imageSlot.Halign = Align.Start;
         _imageSlot.Valign = Align.Start;
         _imageSlot.AddOverlay(_picture);
+        _imageSlot.Visible = false;
 
         _editor = TextView.New();
         _editor.WrapMode = WrapMode.WordChar;
         _editor.AcceptsTab = false;
         _editor.Hexpand = true;
-        _editor.LeftMargin = 4;
-        _editor.RightMargin = 4;
-        _editor.TopMargin = 2;
-        _editor.BottomMargin = 2;
+        _editor.Vexpand = true;
+        _editor.Halign = Align.Fill;
+        _editor.Valign = Align.Fill;
+        _editor.LeftMargin = 0;
+        _editor.RightMargin = 0;
+        _editor.TopMargin = 0;
+        _editor.BottomMargin = 0;
+        _editor.AddCssClass("lue-line");
 
-        Root.Append(_label);
-        Root.Append(_imageSlot);
-        Root.Append(_editor);
+        var page = Box.New(Orientation.Vertical, 0);
+        page.Hexpand = true;
+        page.Append(_label);
+        page.Append(_imageSlot);
+
+        // The rendered line stays in the layout. The editor is drawn on top of
+        // it and is not measured, so showing the caret does not collapse or
+        // rebuild the row.
+        _overlay = Overlay.New();
+        _overlay.Hexpand = true;
+        _overlay.Child = page;
+        _overlay.AddOverlay(_editor);
+        _overlay.SetMeasureOverlay(_editor, false);
+        Root = _overlay;
 
         var click = GestureClick.New();
         click.SetButton(1);
@@ -91,49 +111,97 @@ sealed class DocumentRow
 
     public void Refresh()
     {
+        if (_presentedSource == Line.Text && _presentedEditing == Line.Editing)
+            return;
+
+        var placeCursor = Line.Editing && !_presentedEditing;
+        _presentedSource = Line.Text;
+        _presentedEditing = Line.Editing;
         ApplyKind(LineRenderer.KindOf(Line.Text));
+
         if (Line.Editing)
         {
-            _label.Visible = false;
-            _picture.Visible = false;
-            _imageSlot.Visible = false;
-            _editor.Visible = true;
-            if (CurrentText() != Line.Text)
-            {
-                _suppress = true;
-                Buffer.SetText(Line.Text, -1);
-                PlaceCursorAtEnd();
-                _suppress = false;
-            }
-            Root.SetCursorFromName("text");
+            ShowEditor(placeCursor);
             return;
         }
 
-        _editor.Visible = false;
         var colors = WidgetColors(_label);
         var rendered = LineRenderer.Render(Line.Text, _view.Session.WorkingDirectory, colors.Background, colors.Foreground);
         if (rendered.IsImage && TryLoad(rendered, out var paintable))
         {
+            _showingImage = true;
             _label.Visible = false;
-            _picture.Visible = true;
-            _imageSlot.Visible = true;
             _picture.Paintable = paintable!;
             _picture.AlternativeText = rendered.Text ?? Path.GetFileName(rendered.ImagePath ?? "image");
+            _picture.Visible = true;
+            _imageSlot.Visible = true;
             FitPicture(int.MaxValue);
-        }
-        else
-        {
-            _picture.Visible = false;
-            _imageSlot.Visible = false;
-            _imageFrame.WidthRequest = -1;
-            _imageFrame.HeightRequest = -1;
-            _label.Visible = true;
-            _label.Label_ = rendered.Text ?? "";
-            _label.Justify = Justification.Left;
-            _label.Xalign = 0;
+            HideEditor();
+            Root.SetCursorFromName("pointer");
+            return;
         }
 
+        _showingImage = false;
+        _imageSlot.Visible = false;
+        _imageFrame.WidthRequest = -1;
+        _imageFrame.HeightRequest = -1;
+        _label.Visible = true;
+        _label.Opacity = 1;
+        _label.Label_ = rendered.Text ?? "";
+        _label.Justify = Justification.Left;
+        _label.Xalign = 0;
+        HideEditor();
         Root.SetCursorFromName("pointer");
+    }
+
+    void ShowEditor(bool placeCursor)
+    {
+        _showingImage = false;
+        _imageSlot.Visible = false;
+        _imageFrame.WidthRequest = -1;
+        _imageFrame.HeightRequest = -1;
+
+        // The invisible label keeps the rendered line's height while the editor
+        // is drawn on top, including before the editor can be measured.
+        var colors = WidgetColors(_label);
+        var rendered = LineRenderer.Render(Line.Text, _view.Session.WorkingDirectory, colors.Background, colors.Foreground);
+        _label.Label_ = rendered.IsImage ? Line.Text : rendered.Text ?? "";
+        _label.Visible = true;
+        _label.Opacity = 0;
+        _editor.Visible = true;
+        _editor.Opacity = 1;
+        _editor.Editable = true;
+        _editor.CursorVisible = true;
+        _editor.CanFocus = true;
+        _editor.CanTarget = true;
+        if (CurrentText() != Line.Text)
+        {
+            _suppress = true;
+            Buffer.SetText(Line.Text, -1);
+            _suppress = false;
+            placeCursor = true;
+        }
+
+        if (placeCursor)
+            PlaceCursorAtEnd();
+        Root.SetCursorFromName("text");
+    }
+
+    void HideEditor()
+    {
+        if (CurrentText() != Line.Text)
+        {
+            _suppress = true;
+            Buffer.SetText(Line.Text, -1);
+            _suppress = false;
+        }
+
+        _editor.Editable = false;
+        _editor.CursorVisible = false;
+        _editor.CanFocus = false;
+        _editor.CanTarget = false;
+        _editor.Opacity = 0;
+        _editor.Visible = true;
     }
 
     public void FocusEditor()
@@ -149,18 +217,22 @@ sealed class DocumentRow
         if (width < 40)
             return;
 
-        if (_picture.Visible)
+        if (_showingImage)
         {
+            if (_overlay.HeightRequest != -1)
+                _overlay.HeightRequest = -1;
             FitPicture(width);
             return;
         }
 
-        if (!_editor.Visible)
-            return;
-
-        _editor.WidthRequest = width;
-        _editor.Measure(Orientation.Vertical, width, out var minimum, out var natural, out _, out _);
-        _editor.HeightRequest = Math.Max(minimum, natural);
+        // Hold the taller of the rendered line and the editor so the swap
+        // does not resize the row. A measurement of 0 means the widget is not
+        // on a display yet; leaving the request unset keeps the label's height.
+        _label.Measure(Orientation.Vertical, width, out var labelMin, out var labelNat, out _, out _);
+        _editor.Measure(Orientation.Vertical, width, out var editorMin, out var editorNat, out _, out _);
+        var height = Math.Max(Math.Max(labelMin, labelNat), Math.Max(editorMin, editorNat));
+        if (height > 0 && _overlay.HeightRequest != height)
+            _overlay.HeightRequest = height;
     }
 
     void FitPicture(int width)
@@ -257,13 +329,22 @@ sealed class DocumentRow
 
     void OnMapped()
     {
+        if (Line.Editing)
+            _editor.GrabFocus();
+        _view.Refit();
+
         if (_colorsReady || Line.Editing || LineRenderer.KindOf(Line.Text) != LineRenderer.Tex)
             return;
+        _presentedSource = null;
         Refresh();
     }
 
     void ApplyKind(string kind)
     {
+        if (kind == _kind)
+            return;
+        _kind = kind;
+
         foreach (var name in NativeClasses)
         {
             _label.RemoveCssClass(name);
